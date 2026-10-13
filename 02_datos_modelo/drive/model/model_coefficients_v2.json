@@ -1,0 +1,77 @@
+{
+  "version": "2.1",
+  "model": "Clift2021_raw_input_cox_model3",
+  "source": "https://mhealth.jmir.org/2021/2/e25655",
+  "license": "CC BY article coefficients",
+  "coefficients": {
+    "beta_log_age": 3.8622,
+    "beta_sleep": 0.075,
+    "beta_srh_excellent": 0.0,
+    "beta_srh_good": 0.0964,
+    "beta_srh_fair": 0.631,
+    "beta_srh_poor": 2.5479,
+    "beta_cigs": 0.0685,
+    "beta_reaction": 0.0008,
+    "beta_wthr": 1.1679,
+    "beta_alcohol": 0.0077,
+    "beta_rhr": 0.0133
+  },
+  "benchmark": {
+    "sleep_hours": 7.16,
+    "self_rated_health_coef": 0.29910076,
+    "cigarettes_per_day": 0,
+    "reaction_time_ms": 558.03,
+    "waist_to_height_ratio": 0.54,
+    "alcohol_units_week": 14.34,
+    "resting_hr_bpm": 69.84,
+    "non_age_lp": 2.95248076
+  },
+  "operational_guardrails": {
+    "age_years": [
+      40,
+      69
+    ],
+    "sleep_hours": [
+      3,
+      12
+    ],
+    "cigarettes_per_day": [
+      0,
+      60
+    ],
+    "reaction_time_ms": [
+      250,
+      1500
+    ],
+    "waist_to_height_ratio": [
+      0.3,
+      0.9
+    ],
+    "alcohol_units_week": [
+      0,
+      100
+    ],
+    "resting_hr_bpm": [
+      35,
+      130
+    ]
+  },
+  "sensitivity": {
+    "method": "bounds_aware",
+    "default_deltas": {
+      "sleep_hours": 0.5,
+      "reaction_time_ms": 50.0,
+      "waist_to_height_ratio": 0.02,
+      "alcohol_units_week": 2.0,
+      "resting_hr_bpm": 5.0
+    },
+    "note": "Clip perturbations to guardrails; not a confidence interval."
+  },
+  "output_display": {
+    "reference_age_range": [
+      40,
+      69
+    ],
+    "outside": "<40 or >69; raw retained for audit only"
+  }
+}

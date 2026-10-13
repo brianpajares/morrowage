@@ -1,0 +1,16 @@
+node_modules
+.next
+coverage
+playwright-report
+test-results
+package-lock.json
+spec
+docs
+model
+ux
+drive
+01_estrategia
+02_datos_modelo
+03_qa_ux
+handoff.json
+messages/*.generated.json

@@ -1,0 +1,62 @@
+{
+  "app_slug": "morrowage",
+  "version": "2.1",
+  "generated_on": "2026-10-06",
+  "root": "/Apps/morrowage/",
+  "files": [
+    {
+      "file": "base_morrowage.xlsx",
+      "drive_path": "/Apps/morrowage/base/base_morrowage.xlsx",
+      "purpose": "Base de conocimiento y fórmulas de referencia; fuente principal para build/runtime.",
+      "format": "XLSX",
+      "reader": "app + build",
+      "sha256": "10a99e28dc9fdeb41d18a05eaf11cbd2dd41d92e2af015d34f881707646c370b",
+      "version": "2.1"
+    },
+    {
+      "file": "benchmark_reference.csv",
+      "drive_path": "/Apps/morrowage/base/benchmark_reference.csv",
+      "purpose": "Benchmark compacto usado por la transformación MorrowAge.",
+      "format": "CSV",
+      "reader": "build + QA",
+      "sha256": "453f4788871f40931a95f59f1b2e81aa36e2abb8ca8d8040cb3b7653869e3d5e",
+      "version": "2.1"
+    },
+    {
+      "file": "fuentes_datos.csv",
+      "drive_path": "/Apps/morrowage/base/fuentes_datos.csv",
+      "purpose": "Registro auditable de fuentes, licencias y estado.",
+      "format": "CSV",
+      "reader": "build + QA",
+      "sha256": "31a142783ccaaa8f64b1ee1d2ab2da34b5e84f4ffce3c3c2274159fa6e3ec67e",
+      "version": "2.1"
+    },
+    {
+      "file": "model_card.md",
+      "drive_path": "/Apps/morrowage/docs/model_card.md",
+      "purpose": "Página Cómo funciona / model card.",
+      "format": "MD",
+      "reader": "app + build",
+      "sha256": "8f6517def5aab79dabe393f9bb3af0d7f3216e5b0f1edd6a73a3b70ff5850593",
+      "version": "2.1"
+    },
+    {
+      "file": "model_coefficients_v2.json",
+      "drive_path": "/Apps/morrowage/model/model_coefficients_v2.json",
+      "purpose": "Coeficientes versionados y benchmark del motor.",
+      "format": "JSON",
+      "reader": "app + build",
+      "sha256": "a83ccbabbfb537e09b338fb6a7a60f3ef20bd34b31cbd878868fe111ce44fec9",
+      "version": "2.1"
+    },
+    {
+      "file": "report_structure_v2.json",
+      "drive_path": "/Apps/morrowage/templates/report_structure_v2.json",
+      "purpose": "Estructura multilingüe del informe gratuito/pago.",
+      "format": "JSON",
+      "reader": "app + build",
+      "sha256": "a73b905f860b57fe0beab37f73641ec21edb4108d81c71257f7ee2783690cc63",
+      "version": "2.1"
+    }
+  ]
+}

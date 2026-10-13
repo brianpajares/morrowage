@@ -1,0 +1,347 @@
+{
+  "app_slug": "morrowage",
+  "app_name": "MorrowAge",
+  "version": "4.0",
+  "stage_completed": 4,
+  "status": "READY_TO_BUILD",
+  "next_agent": "LLM_PROGRAMMER",
+  "created_at": "2026-10-06T11:28:00-05:00",
+  "source_input": {
+    "type": "notion_url",
+    "url": "https://app.notion.com/p/BioAge-3edc1d79fdfd80dcb590ebe796805a30?source=copy_link",
+    "retrieval_status": "not publicly fetchable; title used as concept signal"
+  },
+  "files": [
+    ".env.example",
+    "00_START_HERE.md",
+    "01_estrategia/brief.json",
+    "01_estrategia/brief_estrategico.docx",
+    "01_estrategia/brief_estrategico.md",
+    "01_estrategia/fuentes_mercado.csv",
+    "02_datos_modelo/__pycache__/engine_reference.cpython-313.pyc",
+    "02_datos_modelo/base_morrowage.xlsx",
+    "02_datos_modelo/drive/base/base_morrowage.xlsx",
+    "02_datos_modelo/drive/base/benchmark_reference.csv",
+    "02_datos_modelo/drive/base/fuentes_datos.csv",
+    "02_datos_modelo/drive/docs/model_card.md",
+    "02_datos_modelo/drive/model/model_coefficients_v2.json",
+    "02_datos_modelo/drive/templates/report_structure_v2.json",
+    "02_datos_modelo/drive_manifest.json",
+    "02_datos_modelo/engine_reference.py",
+    "02_datos_modelo/estudio_modelos.md",
+    "02_datos_modelo/fuentes_datos.csv",
+    "02_datos_modelo/ingest/ingest.py",
+    "02_datos_modelo/inputs.schema.json",
+    "02_datos_modelo/model_card.md",
+    "02_datos_modelo/model_spec.json",
+    "02_datos_modelo/monetizacion.json",
+    "02_datos_modelo/monetizacion.md",
+    "02_datos_modelo/outputs_spec.json",
+    "02_datos_modelo/test_vectors.json",
+    "03_qa_ux/__pycache__/qa_engine.cpython-313.pyc",
+    "03_qa_ux/analytics_events.json",
+    "03_qa_ux/components.md",
+    "03_qa_ux/copy_i18n.json",
+    "03_qa_ux/design_tokens.json",
+    "03_qa_ux/prototype.html",
+    "03_qa_ux/qa_checks.json",
+    "03_qa_ux/qa_engine.py",
+    "03_qa_ux/qa_report.md",
+    "03_qa_ux/report_layout.md",
+    "03_qa_ux/sitemap_flows.md",
+    "03_qa_ux/ux_spec.md",
+    "AGENTS.md",
+    "BUILD_PROMPT.md",
+    "CLAUDE.md",
+    "DECISIONS.md",
+    "README_START_HERE.md",
+    "TASKS.md",
+    "docs/ACCEPTANCE_TESTS.md",
+    "docs/DRIVE_SETUP.md",
+    "docs/LAUNCH_CHECKLIST.md",
+    "docs/PRD.docx",
+    "docs/PRD.md",
+    "docs/TRACTION_PLAN.md",
+    "docs/brief_estrategico.md",
+    "docs/decisions_log.md",
+    "docs/final_audit.md",
+    "docs/qa_report.md",
+    "drive/base/base_morrowage.xlsx",
+    "drive/base/benchmark_reference.csv",
+    "drive/base/fuentes_datos.csv",
+    "drive/docs/model_card.md",
+    "drive/model/model_coefficients_v2.json",
+    "drive/templates/report_structure_v2.json",
+    "handoff.json",
+    "model/__pycache__/engine_reference.cpython-313.pyc",
+    "model/engine_reference.py",
+    "model/ingest/ingest.py",
+    "model/model_card.md",
+    "model/qa_engine.py",
+    "spec/analytics_events.json",
+    "spec/copy_i18n.json",
+    "spec/db_schema.sql",
+    "spec/design_tokens.json",
+    "spec/drive_manifest.json",
+    "spec/inputs.schema.json",
+    "spec/model_spec.json",
+    "spec/monetizacion.json",
+    "spec/openapi.yaml",
+    "spec/outputs_spec.json",
+    "spec/test_vectors.json",
+    "ux/components.md",
+    "ux/prototype.html",
+    "ux/report_layout.md",
+    "ux/sitemap_flows.md",
+    "ux/ux_spec.md"
+  ],
+  "decisions": [
+    "Renombrar la idea de trabajo BioAge a MorrowAge para evitar colisión de posicionamiento con BioAge Labs, múltiples apps BioAge y marcas existentes.",
+    "Elegir un modelo de supervivencia calibrado a mortalidad real, no un quiz heurístico ni un LLM.",
+    "Convertir probabilidad de mortalidad a una edad equivalente poblacional para mantener el gancho de 'edad' sin afirmar medición epigenética.",
+    "Mantener inputs bajo 90 segundos y sin laboratorio, wearable obligatorio ni instrumento.",
+    "Mostrar sensibilidad de medición claramente etiquetada y explicación de contribuyentes como rasgo central de confianza; no llamarla intervalo de confianza.",
+    "Usar email gate para informe completo en Fase 1 y pago por informe en Fase 2.",
+    "Evitar claims de diagnóstico, prevención o tratamiento para permanecer en territorio de general wellness de bajo riesgo, sujeto a revisión legal.",
+    "Seleccionar como motor principal Clift et al. 2021 raw-input Cox model 3: coeficientes publicados, c-statistic 0.74, ejecución local y artículo final JMIR bajo CC BY.",
+    "No implementar ni reutilizar el C-Score propietario; usar únicamente los coeficientes raw-input publicados.",
+    "Cambiar la salida numérica v1 desde probabilidad absoluta de mortalidad a 10 años a MorrowAge (edad equivalente de riesgo) + hazard relativo, porque el paper no publica S0(10) y no se inventará baseline survival.",
+    "Definir MorrowAge como edad equivalente frente a un benchmark documentado (medias continuas UKB publicadas + salud autorreportada ponderada + benchmark never-smoker), no como edad biológica ni como edad poblacional nacional calibrada.",
+    "Restringir el rango v1 de 35–69 a 40–69 años para no extrapolar fuera del rango de reclutamiento del estudio principal.",
+    "Sustituir la hipótesis de inputs de etapa 1 por los 8 inputs exactos del modelo publicado: edad, sueño, salud autorreportada, cigarrillos/día, reaction time, cintura/altura, alcohol UK units/semana y resting HR.",
+    "Tratar los min/max numéricos distintos de edad como guardrails de producto preliminares, no como extremos de entrenamiento publicados.",
+    "Llamar al rango mostrado 'sensibilidad de medición', no intervalo de confianza; los deltas de medición son preliminares.",
+    "Mantener el precio ancla US$19 y precios locales de etapa 1 como hipótesis; usar World Bank PA.NUS.PRVT.PP antes de activar cada mercado y no presentarlos como PPP verificado aún.",
+    "Marcar etapa 2 DATA_PARTIAL: el motor relativo es reproducible y QA-ready, pero el target absoluto a 10 años y percentiles nacionales permanecen bloqueados hasta recalibración.",
+    "Etapa 3: corregir sensibilidad para que sea bounds-aware por dirección y nunca genere escenarios fuera de guardrails.",
+    "Etapa 3: conservar MorrowAge bruto para QA, pero censurar en UI cualquier valor fuera de 40–69 como <40 o >69.",
+    "Etapa 3: alinear brief/output/monetización: no riesgo absoluto 10y, no IC, 1 driver free, comparativas locales bloqueadas.",
+    "Etapa 3: minimizar telemetría; analytics/admin no recibe inputs de salud, score crudo ni report URL.",
+    "Etapa 3: sistema UX de 8 pasos, valor <90 s, un CTA por pantalla y gate con beneficio explícito.",
+    "Etapa 4: MONETIZATION_MODE=validation por defecto; Stripe permanece detrás de STRIPE_ENABLED=false hasta umbrales de tracción y gates de seguridad/legal.",
+    "Etapa 4: motor production debe portarse a TypeScript desde engine_reference.py sin alterar matemática; test_vectors.json es golden source.",
+    "Etapa 4: Google Drive se usa para assets/config versionados con SHA-256, cache 24h y last-known-good; no para informes personales.",
+    "Etapa 4: Supabase separa cálculos sensibles de leads/admin; frontend admin no puede leer calculations.",
+    "Etapa 4: el correo operacional a OWNER_EMAIL en validation contiene inputs, resultados y PDF conforme al contrato de fábrica, pero ese payload no se replica en analytics/admin/logs.",
+    "Etapa 4: token de informe es aleatorio y solo su hash persiste en DB.",
+    "Etapa 4: umbral mínimo para considerar cobro = preview→email >=25% y >=50 solicitudes/14 días, complementado por monetizacion.json y dos cohortes semanales.",
+    "Etapa 4: cumplimiento Perú referencia Ley 29733 + D.S. 016-2024-JUS vigente desde 31-03-2025; revisión legal formal sigue siendo gate."
+  ],
+  "assumptions": [
+    "La URL de Notion suministrada no pudo recuperarse con acceso web público; se infirió por el título 'BioAge' que la idea es un predictor B2C de edad biológica.",
+    "Se aplica un PIVOT de posicionamiento: no se afirmará medir edad celular/epigenética sin laboratorio; el producto mostrará una 'Healthspan Age' definida operacionalmente como edad equivalente por riesgo poblacional.",
+    "El MVP se entrena y valida inicialmente con datos de EE.UU. (NHANES/NHIS + mortalidad) y se comercializa primero en EE.UU.; otros países requieren recalibración antes de presentar cifras personalizadas como equivalentes.",
+    "La marca propuesta 'MorrowAge' y los dominios morrowage.com / morrowage.app son preliminares; no se realizó una búsqueda legal de marcas ni una comprobación registral de dominios.",
+    "Precios, CAC y conversiones son hipótesis de validación, no hechos de mercado.",
+    "El producto se limita a adultos 40–69 años en MVP para reducir extrapolación; embarazo, enfermedad terminal y menores quedan fuera.",
+    "El resultado es educativo de bienestar general: no diagnostica, no recomienda fármacos ni sustituye evaluación médica.",
+    "El benchmark de cigarettes_per_day=0 es una definición explícita de never-smoker para referencia y no una media de UK Biobank.",
+    "ref_srh_coef=0.29910076 se deriva exactamente de las proporciones de self-rated health publicadas y sus coeficientes.",
+    "La transformación MorrowAge invierte exactamente el término 3.8622*ln(age) del Cox manteniendo el benchmark no-edad fijo.",
+    "Los escenarios de sensibilidad usan ±0.5 h sueño, ±50 ms reaction time, ±0.02 WHtR, ±2 unidades UK alcohol y ±5 bpm RHR como supuestos preliminares de medición.",
+    "US, UK y Canada aparecen en test_vectors para routing/QA, no como evidencia de calibración local.",
+    "La retención inicial REPORT_RETENTION_DAYS=30 es una decisión operativa preliminar que debe validarse legalmente por mercado.",
+    "El costo incremental objetivo de validation <=US$0.05/informe excluye planes fijos y debe medirse en producción.",
+    "El buzón OWNER_EMAIL se considera un sistema operacional sensible con acceso mínimo y retención limitada."
+  ],
+  "open_issues": [
+    "Recalibrar baseline survival a 10 años con fuente oficial apropiada antes de habilitar probabilidad absoluta.",
+    "Validar discriminación/calibración y transporte por sexo, edad y grupos demográficos en holdout externo.",
+    "Recalibrar por país antes de percentiles/comparativas nacionales.",
+    "Cerrar protocolo web de reaction time y validar guardrails/deltas de medición.",
+    "Revisión regulatoria/claims y privacidad por mercado antes de cobro/lanzamiento público.",
+    "Validar precios locales/WTP/PPP antes de activar cobro.",
+    "Búsqueda profesional de marca y dominios para MorrowAge.",
+    "Validar volúmenes SEO con herramienta directa.",
+    "Completar implementación y despliegue del repo mediante LLM programador.",
+    "Realizar revisión legal formal y DPIA/assessment de privacidad cuando aplique antes de lanzamiento público/cobro.",
+    "Validar deliverability real y políticas SPF/DKIM/DMARC en dominio final.",
+    "Medir costo real por informe y performance p95 en producción."
+  ],
+  "changelog": [
+    {
+      "version": "1.0",
+      "date": "2026-10-06",
+      "changes": [
+        "Created Stage 1 strategy package from Notion input titled BioAge.",
+        "Applied pivot to mortality-calibrated Healthspan Age with no-lab inputs.",
+        "Renamed working product to MorrowAge; brand/domain availability remains preliminary.",
+        "Added sourced market evidence, demand signals, competition, pricing, risks and scorecard."
+      ]
+    },
+    {
+      "version": "2.0",
+      "date": "2026-10-06",
+      "changes": [
+        "Stage 2 data/model package created with 6 model candidates and primary/backup selection.",
+        "Added auditable Cox coefficient specification, Excel knowledge base, Python reference engine and 18 generated test vectors.",
+        "Restricted v1 age validity to 40–69.",
+        "Blocked absolute 10-year mortality probability because baseline survival is not published in the selected source.",
+        "Added monetization validation/cost model and Drive manifest with SHA-256."
+      ]
+    },
+    {
+      "version": "3.0",
+      "date": "2026-10-06",
+      "changes": [
+        "Independent QA engine implemented and cross-checked: 18/18 vectors; 18/18 robustness checks.",
+        "Fixed bounds-aware sensitivity and out-of-reference-range result presentation.",
+        "Corrected brief, model/output specs, monetization privacy, source licensing notes, Excel and reference engine.",
+        "Added full UX/UI package, i18n copy, design system, analytics spec, report layout and self-contained prototype.",
+        "Set verdict PASS_WITH_FIXES and next_agent=4."
+      ]
+    },
+    {
+      "version": "4.0",
+      "date": "2026-10-06",
+      "changes": [
+        "Validated Stage 3 handoff, all JSON, Drive manifest checksums and 18/18 engine vectors.",
+        "Created full PRD in Markdown and Roboto DOCX with visual render QA.",
+        "Added OpenAPI 3.1, Supabase schema with RLS, build prompt, agent rules, M0-M5 tasks, acceptance tests, Drive setup, launch checklist and 14-day traction plan.",
+        "Set validation monetization default, Stripe feature flag, Vercel-first stack and Google Drive last-known-good strategy.",
+        "Completed final package audit and marked READY_TO_BUILD."
+      ]
+    }
+  ],
+  "stage1_open_issues_original": [
+    "Verificar el contenido exacto de la página de Notion original y reconciliar cualquier requisito que no haya sido visible.",
+    "Agente 2 debe confirmar acceso/licencia/granularidad de NHANES/NHIS linked mortality y seleccionar cohortes/variables compatibles.",
+    "Validar discriminación, calibración y estabilidad por sexo, edad y grupos demográficos; no lanzar si hay brechas materiales no mitigadas.",
+    "Definir estrategia de calibración internacional (UK/Canada/Australia/Brazil) antes de mostrar un Healthspan Age comparable fuera de EE.UU.",
+    "Realizar revisión regulatoria/claims formal para EE.UU., UK/EU, Brasil y Canadá antes de cobro.",
+    "Realizar búsqueda profesional de marca y disponibilidad de dominios para MorrowAge.",
+    "Validar volúmenes SEO con una cuenta directa de Google Keyword Planner/SEMrush/Ahrefs; cifras actuales de demanda son estimaciones de terceros."
+  ],
+  "updated_at": "2026-10-06T16:33:00-05:00",
+  "input_validation_stage2": {
+    "received_stage_completed": 1,
+    "received_status": "PIVOT_APPLIED_READY_FOR_AGENT_2",
+    "brief_verdict": "PIVOT",
+    "accepted": true,
+    "normalization": "El status recibido no era el literal PIVOT, pero brief.json/00_START_HERE confirman PIVOT aplicado; se aceptó y se normalizó como entrada válida.",
+    "fix_list_agente2_present": false
+  },
+  "resolved_issues_stage2": [
+    {
+      "issue": "Confirmar modelo/licencia/granularidad para un motor auditable.",
+      "resolution": "Modelo Clift 2021 raw-input seleccionado; artículo JMIR CC BY; NCHS Linked Mortality confirmado como fuente oficial futura de recalibración.",
+      "status": "resolved"
+    },
+    {
+      "issue": "Evitar un LLM o API cerrada como fuente de la cifra principal.",
+      "resolution": "Motor local determinista con coeficientes publicados; engine_reference.py y Excel replican el mismo cálculo.",
+      "status": "resolved"
+    }
+  ],
+  "data_model_stage2": {
+    "primary_model": "Clift et al. 2021 raw-input Cox model 3",
+    "backup_model": "Ajnakina et al. 2021 Cox-Lasso 10-year mortality",
+    "model_evidence": {
+      "n": 420560,
+      "deaths": 16188,
+      "reported_c_statistic": 0.74
+    },
+    "outputs_ready": [
+      "morrow_age",
+      "delta_age",
+      "relative_hazard",
+      "drivers",
+      "measurement_sensitivity"
+    ],
+    "outputs_locked": [
+      "absolute_mortality_10y",
+      "country_percentile"
+    ],
+    "verified_rows_percent": 81.7,
+    "verified_rows_method": "49/60 filas en Parametros + Tablas_* + Fuentes. Excluye Diccionario, Casos_Prueba generados, Motor y Changelog.",
+    "test_vectors": 18,
+    "motor_engine_match": {
+      "example_morrow_age": 47.698551,
+      "max_observed_rounding_difference_lt": 5e-07,
+      "status": "verified"
+    }
+  },
+  "next_agent_instructions": {
+    "agent": 4,
+    "focus": [
+      "Convertir qa_report.md + ux_spec.md en PRD y paquete técnico sin reabrir outputs bloqueados.",
+      "Usar model wrapper v2.1 y sus display guardrails exactamente.",
+      "Preservar feature flag de checkout: Fase 1 gratis hasta umbrales de monetización.",
+      "No enviar health inputs/resultados a analytics/admin; implementar event schema de analytics_events.json.",
+      "Usar prototype.html como referencia funcional, no como código production-ready."
+    ]
+  },
+  "qa_stage3": {
+    "verdict": "PASS_WITH_FIXES",
+    "double_verification": {
+      "qa_engine_vs_engine_reference": "18/18",
+      "engine_reference_vs_expected": "18/18",
+      "relative_tolerance": 1e-06
+    },
+    "robustness": "18/18",
+    "findings": {
+      "CRITICO": {
+        "open": 0,
+        "fixed": 0
+      },
+      "MAYOR": {
+        "fixed": 4,
+        "open_gates": 3
+      },
+      "MENOR": {
+        "fixed": 3,
+        "documented": 1
+      }
+    },
+    "major_fixes": [
+      "Sensitivity bounds-aware in qa_engine.py, engine_reference.py, Excel and test vectors.",
+      "MorrowAge presentation censored outside 40–69; raw retained for audit.",
+      "Brief/outputs/monetization claims aligned to model capability.",
+      "Health-data admin telemetry minimized."
+    ],
+    "open_launch_gates": [
+      "External validation by sex/age/demographic subgroups and country before local claims.",
+      "Formal regulatory/privacy review before public paid launch.",
+      "Reaction-time protocol and measurement deltas validation."
+    ],
+    "source_review": "10 Cox coefficients + benchmark values + all source/license rows reviewed; S06/S09/S12 corrected; S04 implementation rights no_verificado."
+  },
+  "ux_stage3": {
+    "positioning": {
+      "name": "MorrowAge",
+      "name_status": "preliminar_pending_trademark_search",
+      "tagline_es": "Tu edad equivalente de riesgo, con contexto.",
+      "tagline_en": "Your risk-equivalent age, with context.",
+      "tagline_pt": "Sua idade equivalente de risco, com contexto."
+    },
+    "conversion_decisions": [
+      "Preview gives safe MorrowAge display + one driver before any gate.",
+      "Eight-step mobile-first flow with one primary input/CTA per screen and visible progress.",
+      "Locked report cards expose value (sensitivity, all drivers, scenarios) while email/checkout asks for a clear benefit."
+    ],
+    "accessibility": "WCAG 2.2 AA spec; verified contrast tokens; 360/768/1280 breakpoints.",
+    "prototype": "03_qa_ux/prototype.html self-contained, no external dependencies, verified v2.1 engine math."
+  },
+  "stage4": {
+    "prd": "docs/PRD.md + docs/PRD.docx",
+    "monetization_mode_default": "validation",
+    "stack": "Next.js App Router + TypeScript strict + Tailwind/shadcn + Supabase + Google Drive + Resend + React PDF + next-intl + PostHog + Sentry + Turnstile + Stripe flag",
+    "engine_validation": {
+      "vectors_passed": 18,
+      "vectors_total": 18,
+      "relative_tolerance": 1e-06
+    },
+    "drive_validation": {
+      "files": 6,
+      "checksums": "PASS"
+    },
+    "docx_visual_qa": {
+      "pages": 12,
+      "font": "Roboto",
+      "status": "PASS"
+    },
+    "openapi": "3.1.0",
+    "db_rls": "defined",
+    "final_audit": "docs/final_audit.md"
+  }
+}

@@ -1,0 +1,273 @@
+{
+  "version": "1.0",
+  "privacy_policy": "No event may contain raw health inputs, email, raw MorrowAge, driver contributions, report token/URL, or free-text health data. Use pseudonymous session_id; separate operational delivery systems from product analytics.",
+  "common_properties": [
+    "event_id",
+    "session_id_pseudonymous",
+    "timestamp_utc",
+    "locale",
+    "market_hint_coarse",
+    "model_version",
+    "app_version",
+    "device_class",
+    "experiment_ids"
+  ],
+  "events": [
+    {
+      "name": "landing_view",
+      "trigger": "landing rendered",
+      "properties": []
+    },
+    {
+      "name": "calculate_start_click",
+      "trigger": "primary CTA click",
+      "properties": [
+        "referrer_group"
+      ]
+    },
+    {
+      "name": "scope_view",
+      "trigger": "scope screen shown",
+      "properties": []
+    },
+    {
+      "name": "scope_accept",
+      "trigger": "user accepts intended-use scope",
+      "properties": []
+    },
+    {
+      "name": "scope_out_of_range",
+      "trigger": "age outside supported 40–69",
+      "properties": [
+        "direction_only"
+      ]
+    },
+    {
+      "name": "input_step_view",
+      "trigger": "calculator step shown",
+      "properties": [
+        "step_id",
+        "step_index"
+      ]
+    },
+    {
+      "name": "input_step_complete",
+      "trigger": "valid step submitted",
+      "properties": [
+        "step_id",
+        "elapsed_ms_bucket"
+      ]
+    },
+    {
+      "name": "input_validation_error",
+      "trigger": "step rejected",
+      "properties": [
+        "step_id",
+        "error_code"
+      ]
+    },
+    {
+      "name": "reaction_test_start",
+      "trigger": "reaction test starts",
+      "properties": [
+        "protocol_version"
+      ]
+    },
+    {
+      "name": "reaction_test_complete",
+      "trigger": "reaction test produces a valid value",
+      "properties": [
+        "protocol_version",
+        "attempt_count_bucket"
+      ]
+    },
+    {
+      "name": "unit_system_change",
+      "trigger": "metric/imperial changed",
+      "properties": [
+        "unit_system"
+      ]
+    },
+    {
+      "name": "alcohol_unit_mode_change",
+      "trigger": "alcohol capture unit changed",
+      "properties": [
+        "unit_mode"
+      ]
+    },
+    {
+      "name": "assessment_complete",
+      "trigger": "all 8 inputs valid",
+      "properties": [
+        "total_elapsed_ms_bucket"
+      ]
+    },
+    {
+      "name": "calculation_start",
+      "trigger": "engine called",
+      "properties": []
+    },
+    {
+      "name": "calculation_success",
+      "trigger": "valid structured output returned",
+      "properties": [
+        "morrow_age_status"
+      ]
+    },
+    {
+      "name": "calculation_error",
+      "trigger": "engine fails",
+      "properties": [
+        "error_code"
+      ]
+    },
+    {
+      "name": "preview_view",
+      "trigger": "preview rendered",
+      "properties": [
+        "morrow_age_status"
+      ]
+    },
+    {
+      "name": "preview_unlock_click",
+      "trigger": "full report CTA click",
+      "properties": [
+        "phase"
+      ]
+    },
+    {
+      "name": "methodology_open",
+      "trigger": "methodology opened",
+      "properties": [
+        "origin_screen"
+      ]
+    },
+    {
+      "name": "source_open",
+      "trigger": "external source opened",
+      "properties": [
+        "source_id"
+      ]
+    },
+    {
+      "name": "report_gate_view",
+      "trigger": "email gate shown",
+      "properties": [
+        "phase"
+      ]
+    },
+    {
+      "name": "email_submit",
+      "trigger": "service-delivery email submitted",
+      "properties": [
+        "marketing_opt_in"
+      ]
+    },
+    {
+      "name": "report_delivery_success",
+      "trigger": "delivery provider accepted send",
+      "properties": [
+        "provider",
+        "latency_bucket"
+      ]
+    },
+    {
+      "name": "report_delivery_fail",
+      "trigger": "delivery failed",
+      "properties": [
+        "provider",
+        "error_class"
+      ]
+    },
+    {
+      "name": "checkout_view",
+      "trigger": "checkout shown",
+      "properties": [
+        "price_id",
+        "currency"
+      ]
+    },
+    {
+      "name": "checkout_start",
+      "trigger": "payment flow starts",
+      "properties": [
+        "price_id",
+        "currency"
+      ]
+    },
+    {
+      "name": "purchase_success",
+      "trigger": "payment confirmed",
+      "properties": [
+        "price_id",
+        "currency",
+        "gross_amount_minor"
+      ]
+    },
+    {
+      "name": "purchase_fail",
+      "trigger": "payment failed",
+      "properties": [
+        "error_class"
+      ]
+    },
+    {
+      "name": "report_view",
+      "trigger": "report token opened",
+      "properties": [
+        "access_tier",
+        "morrow_age_status"
+      ]
+    },
+    {
+      "name": "report_section_view",
+      "trigger": "report section enters viewport",
+      "properties": [
+        "section_id"
+      ]
+    },
+    {
+      "name": "report_download_pdf",
+      "trigger": "PDF requested",
+      "properties": [
+        "access_tier"
+      ]
+    },
+    {
+      "name": "delete_data_request",
+      "trigger": "user starts deletion flow",
+      "properties": [
+        "origin_screen"
+      ]
+    }
+  ],
+  "funnel_definitions": {
+    "visit_to_start": [
+      "landing_view",
+      "calculate_start_click"
+    ],
+    "start_to_preview": [
+      "calculate_start_click",
+      "preview_view"
+    ],
+    "preview_to_gate": [
+      "preview_view",
+      "email_submit"
+    ],
+    "gate_to_delivery": [
+      "email_submit",
+      "report_delivery_success"
+    ],
+    "preview_to_purchase": [
+      "preview_view",
+      "purchase_success"
+    ]
+  },
+  "quality_metrics": [
+    "median assessment elapsed bucket <=75s target from Stage1; investigate by step",
+    "calculation_error rate <0.5%",
+    "delivery failure rate <2%",
+    "WCAG issue count from automated+manual audit = 0 critical",
+    "out-of-reference-range rate monitored only as aggregate; do not use to target ads"
+  ]
+}

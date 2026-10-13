@@ -1,0 +1,515 @@
+{
+  "one_liner": "Para adultos de 40–69 años que quieren una señal rápida y transparente sobre cómo su perfil se compara con un benchmark poblacional, MorrowAge transforma un predictor de riesgo relativo publicado en una edad equivalente de riesgo usando 8 datos simples. No es edad biológica, diagnóstico ni probabilidad absoluta de muerte.",
+  "segments": [
+    {
+      "name": "Longevity-curious professionals 35–54",
+      "size_estimate": "~70–150 M globales online (estimación top-down, no censo)",
+      "calculation": "Base global 20–64 muy grande; asumir ~2.0 B online en 35–54 y 3.5–7.5% con intención activa de longevidad/biomarcadores → ~70–150 M.",
+      "pain": "Quieren una señal cuantificada sin gastar US$300–500 ni ir a un laboratorio.",
+      "trigger": "Cumpleaños, chequeo anual, aparición de contenido de longevidad, familiar enfermo o compra de wearable."
+    },
+    {
+      "name": "Prevention-minded adults 50–69",
+      "size_estimate": "~120–250 M globales online (estimación)",
+      "calculation": "Supuesto de ~1.0–1.3 B personas 50–69 globales × alta conectividad en mercados de entrada × 15–25% con intención preventiva digital.",
+      "pain": "Necesitan traducir hábitos y diagnósticos conocidos a una señal comprensible de riesgo.",
+      "trigger": "Resultado médico limítrofe, cambio de peso, diagnóstico en la familia, jubilación o seguro/planificación."
+    },
+    {
+      "name": "Quantified-self / fitness optimizers 30–49",
+      "size_estimate": "~30–80 M globales (estimación)",
+      "calculation": "Subconjunto de usuarios intensivos de fitness/wearables/biohacking; dimensionado conservador por señales de búsqueda y comunidades, pendiente de validación.",
+      "pain": "Tienen métricas dispersas pero no una síntesis longitudinal interpretable.",
+      "trigger": "Nuevo programa de entrenamiento, mejora de VO2max/peso/sueño, reto de 90 días o comparación con amigos."
+    }
+  ],
+  "countries": [
+    {
+      "rank": 1,
+      "country": "United States",
+      "why": "Datos de entrenamiento/validación más accesibles (NHANES/NHIS+NDI), gasto alto y ecosistema longevity maduro.",
+      "launch": "MVP"
+    },
+    {
+      "rank": 2,
+      "country": "United Kingdom",
+      "why": "Interés de búsqueda en biological age en fuerte crecimiento y mercado digital-health maduro.",
+      "launch": "tras recalibración/validación"
+    },
+    {
+      "rank": 3,
+      "country": "Canada",
+      "why": "Mercado anglófono, alto poder adquisitivo y afinidad con wellness.",
+      "launch": "tras recalibración"
+    },
+    {
+      "rank": 4,
+      "country": "Australia",
+      "why": "Mercado anglófono, fitness/wellness digital y alto poder adquisitivo.",
+      "launch": "tras recalibración"
+    },
+    {
+      "rank": 5,
+      "country": "Brazil",
+      "why": "Escala poblacional, portugués requerido por la fábrica y gran mercado de fitness/wellness.",
+      "launch": "tras validación local y LGPD"
+    }
+  ],
+  "persona": {
+    "name": "Alex, 44",
+    "profile": "Profesional con ingresos medios-altos, usa apps de fitness pero no quiere pagar una prueba epigenética; no se considera enfermo.",
+    "jtbd": "“Cuando empiezo a preocuparme por cómo estoy envejeciendo, quiero convertir mis hábitos en una cifra creíble y accionable, para saber qué mejorar primero y si necesito una evaluación más profunda.”",
+    "purchase_trigger": "Ve una diferencia relevante entre su edad cronológica y su edad equivalente de riesgo; quiere el informe con sensibilidad de medición (no intervalo de confianza), drivers y escenarios educativos."
+  },
+  "pain_stats": [
+    {
+      "stat": "43 M muertes por ENT",
+      "year": 2021,
+      "region": "Global",
+      "source_id": "S01",
+      "implication": "El riesgo crónico domina la mortalidad global."
+    },
+    {
+      "stat": "18 M muertes por ENT antes de 70 años",
+      "year": 2021,
+      "region": "Global",
+      "source_id": "S01",
+      "implication": "Existe dolor por mortalidad prematura, no solo por envejecimiento tardío."
+    },
+    {
+      "stat": "1.8 B adultos (31%) insuficientemente activos",
+      "year": 2022,
+      "region": "Global",
+      "source_id": "S02",
+      "implication": "Un factor modificable masivo puede capturarse por autorreporte."
+    },
+    {
+      "stat": "2.5 B adultos con sobrepeso; 890 M con obesidad",
+      "year": 2022,
+      "region": "Global",
+      "source_id": "S03",
+      "implication": "El peso/BMI aporta señal simple y escalable."
+    },
+    {
+      "stat": "1.4 B adultos 30–79 con hipertensión; 600 M no lo saben",
+      "year": 2024,
+      "region": "Global",
+      "source_id": "S04",
+      "implication": "El riesgo puede ser silencioso; la app debe evitar falsa tranquilidad."
+    },
+    {
+      "stat": "Brecha de 9.5 años entre esperanza de vida (71.4) y vida saludable (61.9)",
+      "year": 2021,
+      "region": "Global",
+      "source_id": "S05",
+      "implication": "Costo temporal: casi una década promedio vivida fuera de plena salud."
+    },
+    {
+      "stat": ">1.6 B personas de 65+ proyectadas",
+      "year": "2050",
+      "region": "Global",
+      "source_id": "S06",
+      "implication": "La base de demanda por envejecimiento saludable crecerá estructuralmente."
+    }
+  ],
+  "demand_signals": [
+    {
+      "keyword": "biological age",
+      "volume_estimate": "33,100 búsquedas/mes globales (estimación de tercero)",
+      "trend": "+433% a 5 años",
+      "source_id": "S20"
+    },
+    {
+      "keyword": "biological age test + check biological age",
+      "volume_estimate": "7,200 búsquedas/mes (declarado Google Keyword Planner)",
+      "trend": "demanda BOFU confirmada por tercero",
+      "source_id": "S21"
+    },
+    {
+      "keyword": "biological age (Google Trends UK)",
+      "volume_estimate": "índice relativo, no volumen",
+      "trend": "17 promedio 2022 → 71 promedio 2026 YTD (~4.1x)",
+      "source_id": "S22"
+    },
+    {
+      "keyword": "life expectancy calculator / longevity math",
+      "volume_estimate": "demanda adyacente alta; usar para SEO programático",
+      "trend": "creciente en 2026; validar directamente antes de inversión",
+      "source_id": null
+    },
+    {
+      "community": "Reddit r/Biohackers",
+      "signal": "debates sobre edad biológica, reversibilidad y escepticismo de validez; oportunidad para transparencia",
+      "source_id": "S24"
+    },
+    {
+      "community": "Reddit r/QuantifiedSelf",
+      "signal": "interés en seguimiento longitudinal, predicciones auditables y biomarcadores",
+      "source_id": "S25"
+    },
+    {
+      "spend_signal": "Usuarios ya pagan US$299–499 por kits de edad biológica y US$365/año por paneles amplios; ancla de valor muy por encima del informe digital propuesto.",
+      "source_ids": [
+        "S15",
+        "S16",
+        "S17",
+        "S19"
+      ]
+    }
+  ],
+  "competitors": [
+    {
+      "name": "Elysium Index",
+      "price": "US$299/kit",
+      "business_model": "Pago único por kit epigenético",
+      "strength": "Medición molecular y marca científica",
+      "weakness": "Precio alto, espera y muestra; fricción para curiosidad inicial",
+      "source_id": "S15"
+    },
+    {
+      "name": "TruDiagnostic TruAge",
+      "price": "US$499/test",
+      "business_model": "Pago único; upsells de paneles",
+      "strength": "Epigenética y múltiples outputs",
+      "weakness": "Muy caro para uso masivo; requiere muestra y semanas",
+      "source_id": "S16"
+    },
+    {
+      "name": "GlycanAge",
+      "price": "US$499 one-off; US$449 anual con descuento",
+      "business_model": "Kit + repetición/suscripción",
+      "strength": "Narrativa de inflammaging + consulta",
+      "weakness": "Costo y logística; no es instantáneo",
+      "source_id": "S17"
+    },
+    {
+      "name": "InsideTracker InnerAge",
+      "price": "US$99 por cálculo, además de datos/membresía compatibles",
+      "business_model": "Add-on dentro de plataforma de biomarcadores",
+      "strength": "Acción sobre biomarcadores",
+      "weakness": "Depende de sangre y ecosistema previo",
+      "source_id": "S18"
+    },
+    {
+      "name": "Function Health",
+      "price": "US$365/año",
+      "business_model": "Membresía anual de laboratorio/insights",
+      "strength": "160+ pruebas, longitudinalidad y revisión clínica",
+      "weakness": "US-only, visita de laboratorio y precio de membresía",
+      "source_id": "S19"
+    },
+    {
+      "name": "HowOldIsMyBody.org",
+      "price": "Gratis",
+      "business_model": "Contenido/SEO; calculadora educativa",
+      "strength": "Cero fricción y sin laboratorio",
+      "weakness": "Estimaciones de estilo de vida; no presenta validación predictiva individual comparable",
+      "source_id": "S23"
+    }
+  ],
+  "solution": {
+    "chosen": "B. Mortality-calibrated Healthspan Age",
+    "alternatives": [
+      {
+        "name": "A. Lifestyle BioAge heuristic",
+        "description": "Edad cronológica + ajustes por hábitos (sueño, dieta, actividad, tabaco, alcohol).",
+        "value_perceived": 4,
+        "accuracy": 2,
+        "input_ease": 5,
+        "operating_cost": 5,
+        "virality": 5,
+        "legal_risk": 2,
+        "adjusted_total": 25,
+        "note": "Rápida, pero difícil de defender frente a críticas de 'quiz'."
+      },
+      {
+        "name": "B. Mortality-calibrated Healthspan Age",
+        "description": "Modelo de supervivencia con datos poblacionales + conversión a edad equivalente por riesgo, intervalo y drivers.",
+        "value_perceived": 5,
+        "accuracy": 4,
+        "input_ease": 5,
+        "operating_cost": 5,
+        "virality": 5,
+        "legal_risk": 3,
+        "adjusted_total": 27,
+        "note": "Elegida. Mejor balance de rigor, fricción y monetización."
+      },
+      {
+        "name": "C. Epigenetic/lab Biological Age",
+        "description": "Kit de sangre/saliva con metilación u otros biomarcadores.",
+        "value_perceived": 5,
+        "accuracy": 5,
+        "input_ease": 1,
+        "operating_cost": 1,
+        "virality": 4,
+        "legal_risk": 4,
+        "adjusted_total": 18,
+        "note": "Mayor rigor biológico, pero rompe la regla de inputs fáciles y sube costos/logística."
+      }
+    ],
+    "scoring_note": "Escala 1–5; en legal_risk 1=bajo y 5=alto. adjusted_total = valor+precisión+inputs+costo+viralidad+(6-riesgo)."
+  },
+  "prediction": {
+    "target": "Edad equivalente de riesgo (MorrowAge) + hazard relativo frente a benchmark del mismo modelo. La probabilidad absoluta de mortalidad a 10 años está bloqueada hasta recalibración con baseline survival validada.",
+    "unit": "años equivalentes; diferencia vs edad cronológica en años; hazard relativo. Sin % de riesgo absoluto en v1.",
+    "horizon": "10 años (primario); 4–9 años como benchmarks de índices publicados.",
+    "granularity": "Continua internamente; en UI, la edad equivalente se censura como <40 o >69 fuera del rango etario de referencia. Sensibilidad de medición, no IC.",
+    "problem_type": "Análisis de supervivencia / regresión de riesgo + calibración + inversión monotónica a edad equivalente.",
+    "model_candidates": [
+      "Cox proportional hazards ponderado por diseño de encuesta sobre NHANES 1999–2018 enlazado a NDI; candidato principal por transparencia.",
+      "Gradient Boosted Survival Trees / XGBoost survival como benchmark no lineal, con calibración isotónica o Platt según corresponda.",
+      "Índice de Lee (>50 años) como benchmark interpretable de autorreporte a 4 años.",
+      "Índice de Schonberg (65+) como benchmark externo/segmento mayor.",
+      "Curva base de mortalidad por edad/sexo (CDC/SSA) para mapear riesgo a edad equivalente; internacionalización requerirá tablas nacionales/ONU."
+    ],
+    "llm_rule": "El cálculo numérico lo hace un modelo estadístico/determinista versionado. Un LLM solo puede redactar explicación a partir de outputs estructurados y nunca modificar el score."
+  },
+  "inputs_hypothesis": [
+    "Edad cronológica (40–69).",
+    "Horas promedio de sueño por noche.",
+    "Salud autopercibida: excellent / good / fair / poor, con copy localizado.",
+    "Cigarrillos por día.",
+    "Tiempo de reacción en milisegundos medido con protocolo consistente en la app.",
+    "Relación cintura/altura (mismas unidades; aceptar métrico o imperial y convertir localmente).",
+    "Alcohol semanal normalizado a unidades UK de 8 g de etanol; ofrecer conversiones locales explícitas.",
+    "Frecuencia cardiaca en reposo (bpm)."
+  ],
+  "mvp": {
+    "in": [
+      "Landing page SEO + calculadora EN/ES/PT.",
+      "Assessment de 8 inputs en <90 s, con indicador de progreso y un input principal por pantalla en móvil.",
+      "Cálculo determinista de edad equivalente de riesgo y hazard relativo; sin riesgo absoluto a 10 años en v1.",
+      "Vista previa inmediata: MorrowAge de presentación, hazard relativo secundario y 1 driver principal; sin intervalo de confianza.",
+      "Email gate con beneficio claro para informe completo; en Fase 1 no se cobra.",
+      "Informe web/PDF ligero con sensibilidad de medición bounds-aware, drivers, escenarios educativos, metodología y límites.",
+      "Consentimiento de servicio separado de marketing, privacidad, disclaimer y borrado/retención corta.",
+      "Eventos analíticos mínimos sin enviar inputs de salud ni resultados crudos al propietario."
+    ],
+    "out": [
+      "Diagnóstico médico o recomendación de tratamiento/medicación/suplementos.",
+      "Predicción para menores, embarazo, enfermedad terminal o fuera de 40–69 en MVP.",
+      "Integración obligatoria con Apple Health/Google Fit/wearables.",
+      "Laboratorios, ADN, epigenética, presión arterial medida en vivo o dispositivos.",
+      "Seguro, underwriting, decisiones laborales o crédito.",
+      "Chat médico abierto generado por LLM."
+    ],
+    "v2": [
+      "Tracking longitudinal y re-test trimestral.",
+      "Wearables opcionales para enriquecer actividad/sueño/fitness tras validar incremental lift.",
+      "Calibración específica por país y cohortes.",
+      "Comparación de escenario de hábitos con supuestos transparentes.",
+      "B2B2C para wellness corporativo, coaches y clínicas como top-of-funnel, sin decisiones clínicas automatizadas."
+    ]
+  },
+  "metrics": {
+    "product": [
+      {
+        "metric": "visita→inicio",
+        "target": ">=45%"
+      },
+      {
+        "metric": "inicio→vista previa",
+        "target": ">=70%"
+      },
+      {
+        "metric": "vista previa→solicitud de informe/email",
+        "target": ">=28%"
+      },
+      {
+        "metric": "solicitud→pago (Fase 2)",
+        "target": ">=8%"
+      },
+      {
+        "metric": "tiempo mediano a vista previa",
+        "target": "<=75 s"
+      },
+      {
+        "metric": "share-card entre quienes ven preview",
+        "target": ">=6%"
+      }
+    ],
+    "model": [
+      {
+        "metric": "C-index / time-dependent AUC 10y",
+        "target": ">=0.72 en holdout; reportar IC95%"
+      },
+      {
+        "metric": "Brier score 10y",
+        "target": "<=0.12 o mejorar >=10% vs modelo edad+sexo"
+      },
+      {
+        "metric": "calibration slope",
+        "target": "0.90–1.10"
+      },
+      {
+        "metric": "calibration-in-the-large",
+        "target": "|intercepto| <=0.05 en escala apropiada"
+      },
+      {
+        "metric": "brecha de AUC/calibración entre subgrupos",
+        "target": "<0.05 AUC y sin miscalibración clínicamente material"
+      },
+      {
+        "metric": "benchmark contra Lee/Schonberg",
+        "target": "no inferior en cohortes elegibles o justificar trade-off"
+      }
+    ],
+    "business": [
+      {
+        "metric": "CAC blended objetivo US (tras contenido maduro)",
+        "target": "<=US$8 por comprador"
+      },
+      {
+        "metric": "ingreso medio por comprador inicial",
+        "target": "US$19–29"
+      },
+      {
+        "metric": "margen bruto por informe digital",
+        "target": ">=90% antes de soporte/revisión legal"
+      },
+      {
+        "metric": "email→pago en 30 días",
+        "target": ">=10%"
+      },
+      {
+        "metric": "refund rate",
+        "target": "<5%"
+      }
+    ]
+  },
+  "business_model": {
+    "free": "Vista previa con MorrowAge de presentación (o <40/>69 fuera de rango), hazard relativo secundario y 1 driver principal; sin tarjeta. No incluye sensibilidad completa ni riesgo absoluto.",
+    "paid": "Informe completo con drivers, metodología, sensibilidad de medición y escenarios educativos: US$19 equivalente local como hipótesis. Comparativas poblacionales solo tras validación local.",
+    "subscription": "V2: US$39/año o equivalente para 4 re-evaluaciones, tracking y cambios de score; solo cuando exista necesidad recurrente probada.",
+    "b2b2c": "Licencias/lead-gen para coaches de bienestar, gimnasios, empleadores wellness y clínicas de longevidad, con límites estrictos de uso.",
+    "pricing": [
+      {
+        "country": "United States",
+        "price": "US$19 informe",
+        "logic": "ancla muy por debajo de US$299–499 de tests; suficiente fricción para validar WTP"
+      },
+      {
+        "country": "United Kingdom",
+        "price": "£15 informe",
+        "logic": "aprox. paridad de poder adquisitivo y precio psicológico local"
+      },
+      {
+        "country": "Canada",
+        "price": "C$25 informe",
+        "logic": "equivalente aproximado a US$19 ajustado"
+      },
+      {
+        "country": "Australia",
+        "price": "A$29 informe",
+        "logic": "equivalente aproximado con redondeo psicológico"
+      },
+      {
+        "country": "Brazil",
+        "price": "R$49 informe",
+        "logic": "descuento PPP deliberado para ampliar conversión"
+      },
+      {
+        "country": "Peru / LatAm test",
+        "price": "S/39 informe",
+        "logic": "hipótesis de validación regional; no prioridad de lanzamiento del modelo"
+      }
+    ],
+    "upsells": [
+      "Re-test en 90 días por US$9.",
+      "Bundle pareja/familia (2 informes) por US$29.",
+      "Suscripción anual de tracking en V2.",
+      "Referral a laboratorio/clinician opt-in en mercados permitidos, claramente separado del score y con disclosure comercial."
+    ],
+    "channels": [
+      "SEO programático: /biological-age-calculator, /healthspan-age, /life-expectancy-by-age, /how-smoking-changes-healthspan, /country/age-risk.",
+      "Comunidades: r/Biohackers, r/QuantifiedSelf y foros de fitness/longevity, entrando con metodología abierta y no con claims.",
+      "Creadores de fitness/longevity: challenge 'What is your MorrowAge?' con disclosure de incertidumbre.",
+      "Herramientas gratuitas embebibles para blogs/medios y calculators backlinks.",
+      "Partnerships con wellness coaches/gimnasios como assessment educativo previo."
+    ],
+    "viral_hook": "Share card: 'I’m 44. My MorrowAge is 39–42. Biggest lever: activity.' Nunca mostrar diagnósticos ni riesgo absoluto sin opt-in.",
+    "phases": [
+      "Fase 1 VALIDACIÓN: preview gratis; email para entregar informe completo; el dueño recibe solo eventos administrativos mínimos sin inputs/resultados de salud. Sin cobro.",
+      "Fase 2 COBRO: paywall después de la preview/email; pasarela; A/B test US$15/19/29; mantener preview sin tarjeta.",
+      "Fase 3 RETENCIÓN: re-tests, tracking y suscripción solo si cohortes muestran retorno voluntario."
+    ]
+  },
+  "risks": [
+    {
+      "risk": "Regulatorio/claims médicos",
+      "severity": "Alta",
+      "mitigation": "Posicionar como general wellness educativo; no diagnosticar/prevenir/tratar; revisión legal; disclaimers no sustituyen control de claims; seguir FDA 2026 y equivalentes locales."
+    },
+    {
+      "risk": "Privacidad de datos de salud",
+      "severity": "Alta",
+      "mitigation": "Minimización; cifrado; separación email/inputs; retención corta; consentimiento explícito; DSR/borrado; evaluar FTC HBNR, GDPR/UK GDPR, LGPD y leyes estatales."
+    },
+    {
+      "risk": "Precisión individual / falsa certeza",
+      "severity": "Alta",
+      "mitigation": "Sensibilidad de medición claramente etiquetada (no IC), validación externa, no usar 'true age'; mostrar que es edad equivalente poblacional y censurar outputs fuera de 40–69."
+    },
+    {
+      "risk": "Bias / transporte internacional",
+      "severity": "Alta",
+      "mitigation": "MVP US; auditoría por subgrupos; recalibrar por país; bloquear claims personalizados donde no haya validación suficiente."
+    },
+    {
+      "risk": "Dependencia de datos públicos y linkage",
+      "severity": "Media",
+      "mitigation": "Versionar datasets; documentar licencias; tener benchmark NHIS/HRS; plan de actualización anual."
+    },
+    {
+      "risk": "Commoditización por calculadoras gratis",
+      "severity": "Media",
+      "mitigation": "Moat = validación predictiva + calibración + transparencia + longitudinalidad + distribución SEO; publicar methodology card."
+    },
+    {
+      "risk": "Competencia de wearables/labs",
+      "severity": "Media",
+      "mitigation": "Ser capa de entrada de 90 s y US$19; luego integrarse opcionalmente en vez de competir por hardware/labs."
+    },
+    {
+      "risk": "Ansiedad o interpretación dañina",
+      "severity": "Media-Alta",
+      "mitigation": "Diseño no alarmista; evitar countdown de muerte; resultados con lenguaje poblacional; enlaces a atención profesional cuando corresponda."
+    }
+  ],
+  "scorecard": {
+    "market": {
+      "score": 23,
+      "max": 25,
+      "reason": "Categoría en crecimiento, gasto probado y mercado global grande; naming/SEO competidos."
+    },
+    "pain": {
+      "score": 17,
+      "max": 20,
+      "reason": "Envejecimiento y riesgo crónico son masivos, pero el dolor inmediato es intermitente hasta que aparece un trigger."
+    },
+    "willingness_to_pay": {
+      "score": 17,
+      "max": 20,
+      "reason": "Alternativas cuestan US$99–499+, pero debe demostrarse pago por un resultado sin laboratorio."
+    },
+    "data_model_feasibility": {
+      "score": 12,
+      "max": 15,
+      "reason": "Datos públicos y modelos de supervivencia existen; el reto es transporte internacional y calibración individual."
+    },
+    "virality": {
+      "score": 8,
+      "max": 10,
+      "reason": "Una 'edad' comparativa es altamente compartible; privacidad/sensibilidad limita mecánicas agresivas."
+    },
+    "mvp_speed": {
+      "score": 9,
+      "max": 10,
+      "reason": "Inputs simples, modelo tabular y reporte web; revisión regulatoria/model QA es el cuello de botella."
+    },
+    "total": 86,
+    "verdict": "PIVOT",
+    "pivot": "De 'edad biológica' genérica a 'Healthspan Age' equivalente por riesgo poblacional, con mortalidad a 10 años como variable primaria y sin laboratorio."
+  },
+  "verdict": "PIVOT"
+}

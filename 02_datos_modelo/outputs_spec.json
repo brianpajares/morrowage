@@ -1,0 +1,164 @@
+{
+  "version": "2.1",
+  "model_origin": "Clift 2021 raw-input Cox coefficients + exact age-term inversion",
+  "outputs": [
+    {
+      "id": "morrow_age",
+      "origin": "age * exp((eta_nonage-reference_nonage)/beta_log_age)",
+      "unit": "years",
+      "format": "1 decimal",
+      "access": "GRATIS",
+      "label": {
+        "es": "Tu MorrowAge",
+        "en": "Your MorrowAge",
+        "pt": "Seu MorrowAge"
+      },
+      "presentation_guardrail": "Mostrar valor numérico solo si 40≤raw≤69; fuera, usar morrow_age_display '<40' o '>69'."
+    },
+    {
+      "id": "morrow_age_status",
+      "origin": "compare raw morrow_age with source age reference range 40–69",
+      "unit": "enum",
+      "format": "WITHIN_REFERENCE_RANGE | BELOW_REFERENCE_RANGE | ABOVE_REFERENCE_RANGE",
+      "access": "GRATIS"
+    },
+    {
+      "id": "morrow_age_display",
+      "origin": "presentation-safe rendering of morrow_age",
+      "unit": "text",
+      "format": "1 decimal within range; <40 or >69 outside",
+      "access": "GRATIS"
+    },
+    {
+      "id": "delta_age",
+      "origin": "morrow_age-age",
+      "unit": "years",
+      "format": "signed 1 decimal",
+      "access": "GRATIS",
+      "presentation_guardrail": "Mostrar delta numérico solo cuando morrow_age_status=WITHIN_REFERENCE_RANGE; fuera, usar texto de límite."
+    },
+    {
+      "id": "relative_hazard",
+      "origin": "exp(delta_lp)",
+      "unit": "ratio vs reference at same chronological age",
+      "format": "2 decimals",
+      "access": "GRATIS"
+    },
+    {
+      "id": "preview_driver",
+      "origin": "largest absolute non-age term difference vs benchmark",
+      "unit": "text + contribution",
+      "format": "one insight only",
+      "access": "GRATIS"
+    },
+    {
+      "id": "preview_chart",
+      "origin": "chronological age vs MorrowAge",
+      "unit": "years",
+      "format": "single 2-bar chart",
+      "access": "GRATIS"
+    },
+    {
+      "id": "measurement_sensitivity_range",
+      "origin": "recalculate with predefined measurement deltas clipped to each input guardrail (bounds-aware)",
+      "unit": "years",
+      "format": "low/base/high",
+      "access": "INFORME_COMPLETO"
+    },
+    {
+      "id": "all_drivers",
+      "origin": "per-variable contribution beta*(x-xref)",
+      "unit": "log-hazard contribution",
+      "format": "ranked chart/table",
+      "access": "INFORME_COMPLETO"
+    },
+    {
+      "id": "what_if_scenarios",
+      "origin": "recalculate user-selected plausible input changes",
+      "unit": "years/ratio",
+      "format": "up to 3 scenarios",
+      "access": "INFORME_COMPLETO"
+    },
+    {
+      "id": "methodology",
+      "origin": "model card + sources + assumptions",
+      "unit": "n/a",
+      "format": "auditable appendix",
+      "access": "INFORME_COMPLETO"
+    },
+    {
+      "id": "action_plan",
+      "origin": "non-causal educational next steps from evidence-based wellness guidance; never infer causal advice from coefficient sign alone",
+      "unit": "text",
+      "format": "prioritized educational next steps; no diagnosis/treatment; never recommend changing sleep/alcohol solely from coefficient direction",
+      "access": "INFORME_COMPLETO"
+    },
+    {
+      "id": "country_percentile",
+      "origin": "requires validated local reference distribution",
+      "unit": "percentile",
+      "format": "locked until local calibration",
+      "access": "INFORME_COMPLETO_LOCKED"
+    },
+    {
+      "id": "mortality_risk_10y",
+      "origin": "requires S0(10) or locally recalibrated baseline survival",
+      "unit": "probability",
+      "format": "LOCKED in v1",
+      "access": "NOT_AVAILABLE_V1"
+    }
+  ],
+  "free_preview": {
+    "includes": [
+      "morrow_age_display",
+      "morrow_age_status",
+      "relative_hazard",
+      "preview_chart",
+      "preview_driver"
+    ],
+    "does_not_include": [
+      "exact sensitivity range",
+      "full driver decomposition",
+      "what-if scenarios",
+      "action plan",
+      "methodology appendix",
+      "country percentile"
+    ],
+    "why_paid": "El informe pago convierte una cifra llamativa en contexto auditable: muestra qué mueve el resultado, cuán sensible es a la medición y escenarios concretos. La probabilidad absoluta a 10 años no se vende hasta validarla."
+  },
+  "full_report": {
+    "includes": [
+      "measurement_sensitivity_range",
+      "all_drivers",
+      "what_if_scenarios",
+      "action_plan",
+      "methodology"
+    ],
+    "conditional": [
+      "country_percentile only after local validation"
+    ]
+  },
+  "subscription": {
+    "enabled_phase": "V2 only if retention validates recurrent need",
+    "features": [
+      "periodic recalculation",
+      "trend history",
+      "measurement reminders",
+      "alerts for meaningful score changes"
+    ],
+    "guardrail": "No health emergency alerts and no clinical advice."
+  },
+  "copy": {
+    "locked_absolute_risk": {
+      "es": "La probabilidad absoluta a 10 años aún no está habilitada: falta recalibración local verificada.",
+      "en": "Absolute 10-year risk is not enabled yet: verified local recalibration is still required.",
+      "pt": "O risco absoluto em 10 anos ainda não está habilitado: falta recalibração local verificada."
+    }
+  },
+  "presentation_policy": {
+    "hero": "morrow_age_display; never raw out-of-reference-range age",
+    "relative_hazard": "secondary detail, not mortality probability",
+    "uncertainty": "label as measurement sensitivity scenario, not confidence interval",
+    "absolute_risk": "never imply or display until baseline survival/recalibration is validated"
+  }
+}

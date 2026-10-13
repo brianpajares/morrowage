@@ -1,0 +1,411 @@
+{
+  "meta": {
+    "brand": "MorrowAge",
+    "version": "1.0",
+    "languages": [
+      "es",
+      "en",
+      "pt"
+    ],
+    "note": "Copy aprobado por QA/UX; no usar 'biological age', 'confidence interval' ni '10-year mortality risk' como output v1."
+  },
+  "brand": {
+    "tagline": {
+      "es": "Tu edad equivalente de riesgo, con contexto.",
+      "en": "Your risk-equivalent age, with context.",
+      "pt": "Sua idade equivalente de risco, com contexto."
+    },
+    "promise": {
+      "es": "8 datos. Menos de 90 segundos. Una señal poblacional transparente que puedes auditar.",
+      "en": "8 inputs. Under 90 seconds. A transparent population-based signal you can audit.",
+      "pt": "8 dados. Menos de 90 segundos. Um sinal populacional transparente que você pode auditar."
+    }
+  },
+  "landing": {
+    "eyebrow": {
+      "es": "Estimación educativa basada en datos poblacionales",
+      "en": "Educational estimate based on population data",
+      "pt": "Estimativa educativa baseada em dados populacionais"
+    },
+    "h1": {
+      "es": "Convierte 8 datos cotidianos en una edad equivalente de riesgo.",
+      "en": "Turn 8 everyday inputs into a risk-equivalent age.",
+      "pt": "Transforme 8 dados do dia a dia em uma idade equivalente de risco."
+    },
+    "sub": {
+      "es": "MorrowAge compara tu perfil con un benchmark del mismo modelo. No es edad biológica, diagnóstico ni una predicción cierta de longevidad.",
+      "en": "MorrowAge compares your profile with a benchmark from the same model. It is not biological age, a diagnosis, or a certain prediction of lifespan.",
+      "pt": "MorrowAge compara seu perfil com um benchmark do mesmo modelo. Não é idade biológica, diagnóstico nem uma previsão certa de longevidade."
+    },
+    "cta": {
+      "es": "Calcular mi MorrowAge",
+      "en": "Calculate my MorrowAge",
+      "pt": "Calcular meu MorrowAge"
+    },
+    "trust": {
+      "es": "Cálculo determinista · fuentes visibles · sin laboratorio",
+      "en": "Deterministic calculation · visible sources · no lab",
+      "pt": "Cálculo determinístico · fontes visíveis · sem laboratório"
+    }
+  },
+  "scope": {
+    "title": {
+      "es": "Antes de empezar",
+      "en": "Before you start",
+      "pt": "Antes de começar"
+    },
+    "body": {
+      "es": "Esta herramienta es para adultos de 40–69 años y ofrece una estimación educativa de riesgo relativo poblacional. No la uses para tomar decisiones médicas.",
+      "en": "This tool is for adults ages 40–69 and provides an educational population-based relative-risk estimate. Do not use it to make medical decisions.",
+      "pt": "Esta ferramenta é para adultos de 40–69 anos e oferece uma estimativa educativa de risco relativo populacional. Não a use para tomar decisões médicas."
+    },
+    "cta": {
+      "es": "Entiendo, continuar",
+      "en": "I understand, continue",
+      "pt": "Entendo, continuar"
+    }
+  },
+  "steps": {
+    "age": {
+      "q": {
+        "es": "¿Cuántos años tienes?",
+        "en": "How old are you?",
+        "pt": "Quantos anos você tem?"
+      },
+      "help": {
+        "es": "El modelo de referencia cubre de 40 a 69 años.",
+        "en": "The reference model covers ages 40 to 69.",
+        "pt": "O modelo de referência cobre de 40 a 69 anos."
+      }
+    },
+    "sleep": {
+      "q": {
+        "es": "En promedio, ¿cuántas horas duermes por noche?",
+        "en": "On average, how many hours do you sleep per night?",
+        "pt": "Em média, quantas horas você dorme por noite?"
+      },
+      "help": {
+        "es": "Usa tu promedio habitual, no una noche excepcional.",
+        "en": "Use your usual average, not an exceptional night.",
+        "pt": "Use sua média habitual, não uma noite excepcional."
+      }
+    },
+    "srh": {
+      "q": {
+        "es": "En general, ¿cómo calificarías tu salud?",
+        "en": "In general, how would you rate your health?",
+        "pt": "Em geral, como você avaliaria sua saúde?"
+      },
+      "options": {
+        "es": [
+          "Excelente",
+          "Buena",
+          "Regular",
+          "Mala"
+        ],
+        "en": [
+          "Excellent",
+          "Good",
+          "Fair",
+          "Poor"
+        ],
+        "pt": [
+          "Excelente",
+          "Boa",
+          "Regular",
+          "Ruim"
+        ]
+      }
+    },
+    "cigs": {
+      "q": {
+        "es": "¿Cuántos cigarrillos fumas al día actualmente?",
+        "en": "How many cigarettes do you currently smoke per day?",
+        "pt": "Quantos cigarros você fuma atualmente por dia?"
+      },
+      "help": {
+        "es": "Si no fumas actualmente, escribe 0.",
+        "en": "If you do not currently smoke, enter 0.",
+        "pt": "Se você não fuma atualmente, digite 0."
+      }
+    },
+    "reaction": {
+      "q": {
+        "es": "Mide tu tiempo de reacción",
+        "en": "Measure your reaction time",
+        "pt": "Meça seu tempo de reação"
+      },
+      "help": {
+        "es": "Haz la prueba integrada en el mismo dispositivo. Usaremos el resultado en milisegundos.",
+        "en": "Take the built-in test on the same device. We will use the result in milliseconds.",
+        "pt": "Faça o teste integrado no mesmo dispositivo. Usaremos o resultado em milissegundos."
+      },
+      "cta": {
+        "es": "Iniciar prueba",
+        "en": "Start test",
+        "pt": "Iniciar teste"
+      }
+    },
+    "wthr": {
+      "q": {
+        "es": "¿Cuál es tu cintura y tu altura?",
+        "en": "What are your waist and height?",
+        "pt": "Qual é sua cintura e sua altura?"
+      },
+      "help": {
+        "es": "Usa la misma unidad para ambas. Calculamos cintura ÷ altura.",
+        "en": "Use the same unit for both. We calculate waist ÷ height.",
+        "pt": "Use a mesma unidade para ambos. Calculamos cintura ÷ altura."
+      }
+    },
+    "alcohol": {
+      "q": {
+        "es": "En una semana habitual, ¿cuánto alcohol consumes?",
+        "en": "In a typical week, how much alcohol do you drink?",
+        "pt": "Em uma semana habitual, quanto álcool você consome?"
+      },
+      "help": {
+        "es": "Puedes introducir bebidas estándar; te mostraremos la conversión a unidades UK antes de continuar.",
+        "en": "You can enter standard drinks; we will show the conversion to UK units before you continue.",
+        "pt": "Você pode informar doses padrão; mostraremos a conversão para unidades do Reino Unido antes de continuar."
+      }
+    },
+    "rhr": {
+      "q": {
+        "es": "¿Cuál es tu frecuencia cardiaca en reposo habitual?",
+        "en": "What is your usual resting heart rate?",
+        "pt": "Qual é sua frequência cardíaca de repouso habitual?"
+      },
+      "help": {
+        "es": "Usa bpm de un momento de reposo habitual; evita medir justo después de ejercicio.",
+        "en": "Use bpm from a usual resting period; avoid measuring right after exercise.",
+        "pt": "Use bpm de um período habitual de repouso; evite medir logo após exercício."
+      }
+    }
+  },
+  "common": {
+    "next": {
+      "es": "Continuar",
+      "en": "Continue",
+      "pt": "Continuar"
+    },
+    "back": {
+      "es": "Atrás",
+      "en": "Back",
+      "pt": "Voltar"
+    },
+    "progress": {
+      "es": "Paso {current} de 8",
+      "en": "Step {current} of 8",
+      "pt": "Etapa {current} de 8"
+    },
+    "required": {
+      "es": "Completa este dato para continuar.",
+      "en": "Complete this field to continue.",
+      "pt": "Preencha este dado para continuar."
+    },
+    "range": {
+      "es": "Introduce un valor entre {min} y {max}.",
+      "en": "Enter a value between {min} and {max}.",
+      "pt": "Digite um valor entre {min} e {max}."
+    }
+  },
+  "processing": {
+    "title": {
+      "es": "Calculando tu resultado",
+      "en": "Calculating your result",
+      "pt": "Calculando seu resultado"
+    },
+    "steps": {
+      "es": [
+        "Validando datos",
+        "Calculando",
+        "Preparando contexto"
+      ],
+      "en": [
+        "Validating inputs",
+        "Calculating",
+        "Preparing context"
+      ],
+      "pt": [
+        "Validando dados",
+        "Calculando",
+        "Preparando contexto"
+      ]
+    },
+    "privacy": {
+      "es": "El cálculo numérico no necesita un LLM.",
+      "en": "The numeric calculation does not require an LLM.",
+      "pt": "O cálculo numérico não precisa de um LLM."
+    }
+  },
+  "preview": {
+    "eyebrow": {
+      "es": "Tu edad equivalente de riesgo",
+      "en": "Your risk-equivalent age",
+      "pt": "Sua idade equivalente de risco"
+    },
+    "within": {
+      "es": "Tu MorrowAge estimada es {age}.",
+      "en": "Your estimated MorrowAge is {age}.",
+      "pt": "Seu MorrowAge estimado é {age}."
+    },
+    "below": {
+      "es": "Tu resultado cae por debajo del límite de referencia del modelo: <40.",
+      "en": "Your result falls below the model’s reference boundary: <40.",
+      "pt": "Seu resultado fica abaixo do limite de referência do modelo: <40."
+    },
+    "above": {
+      "es": "Tu resultado supera el límite de referencia del modelo: >69.",
+      "en": "Your result exceeds the model’s reference boundary: >69.",
+      "pt": "Seu resultado ultrapassa o limite de referência do modelo: >69."
+    },
+    "not_bio": {
+      "es": "No es tu edad biológica ni una predicción de cuántos años vivirás.",
+      "en": "This is not your biological age or a prediction of how long you will live.",
+      "pt": "Isto não é sua idade biológica nem uma previsão de quantos anos você viverá."
+    },
+    "driver": {
+      "es": "La asociación que más movió tu resultado frente al benchmark fue: {driver}.",
+      "en": "The association that moved your result most versus the benchmark was: {driver}.",
+      "pt": "A associação que mais moveu seu resultado versus o benchmark foi: {driver}."
+    },
+    "cta": {
+      "es": "Ver mi informe completo",
+      "en": "See my full report",
+      "pt": "Ver meu relatório completo"
+    },
+    "locked": {
+      "es": "Desbloquea sensibilidad de medición, todos los drivers y escenarios.",
+      "en": "Unlock measurement sensitivity, all drivers, and scenarios.",
+      "pt": "Desbloqueie sensibilidade de medição, todos os drivers e cenários."
+    }
+  },
+  "email_gate": {
+    "title": {
+      "es": "Recibe el contexto, no solo la cifra",
+      "en": "Get the context, not just the number",
+      "pt": "Receba o contexto, não apenas o número"
+    },
+    "body": {
+      "es": "Te enviaremos tu informe con sensibilidad de medición, drivers, supuestos y metodología. En esta fase es gratis.",
+      "en": "We’ll send your report with measurement sensitivity, drivers, assumptions, and methodology. It’s free in this phase.",
+      "pt": "Enviaremos seu relatório com sensibilidade de medição, drivers, premissas e metodologia. Nesta fase é grátis."
+    },
+    "email": {
+      "es": "Tu email",
+      "en": "Your email",
+      "pt": "Seu email"
+    },
+    "cta": {
+      "es": "Enviarme el informe gratis",
+      "en": "Send me the free report",
+      "pt": "Enviar meu relatório grátis"
+    },
+    "privacy": {
+      "es": "Solo lo usamos para entregarte el informe. Marketing es opcional y separado.",
+      "en": "We only use it to deliver your report. Marketing is optional and separate.",
+      "pt": "Usamos apenas para entregar seu relatório. Marketing é opcional e separado."
+    },
+    "marketing": {
+      "es": "Sí, quiero recibir novedades de MorrowAge (opcional).",
+      "en": "Yes, send me MorrowAge updates (optional).",
+      "pt": "Sim, quero receber novidades do MorrowAge (opcional)."
+    }
+  },
+  "checkout": {
+    "title": {
+      "es": "Desbloquea el informe completo",
+      "en": "Unlock the full report",
+      "pt": "Desbloqueie o relatório completo"
+    },
+    "value": {
+      "es": "Incluye sensibilidad de medición, todos los drivers, escenarios y metodología auditable.",
+      "en": "Includes measurement sensitivity, all drivers, scenarios, and auditable methodology.",
+      "pt": "Inclui sensibilidade de medição, todos os drivers, cenários e metodologia auditável."
+    },
+    "cta": {
+      "es": "Desbloquear informe — {price}",
+      "en": "Unlock report — {price}",
+      "pt": "Desbloquear relatório — {price}"
+    }
+  },
+  "success": {
+    "title": {
+      "es": "Tu informe está listo",
+      "en": "Your report is ready",
+      "pt": "Seu relatório está pronto"
+    },
+    "body": {
+      "es": "Revisa tu correo o ábrelo ahora. El enlace caduca por privacidad.",
+      "en": "Check your email or open it now. The link expires for privacy.",
+      "pt": "Confira seu email ou abra agora. O link expira por privacidade."
+    },
+    "cta": {
+      "es": "Abrir mi informe",
+      "en": "Open my report",
+      "pt": "Abrir meu relatório"
+    }
+  },
+  "report": {
+    "sensitivity": {
+      "es": "Sensibilidad de medición",
+      "en": "Measurement sensitivity",
+      "pt": "Sensibilidade de medição"
+    },
+    "sensitivity_note": {
+      "es": "No es un intervalo de confianza. Muestra cambios de medición plausibles dentro de los guardrails.",
+      "en": "This is not a confidence interval. It shows plausible measurement changes within guardrails.",
+      "pt": "Não é um intervalo de confiança. Mostra mudanças plausíveis de medição dentro dos guardrails."
+    },
+    "drivers": {
+      "es": "Qué se asocia con tu resultado",
+      "en": "What is associated with your result",
+      "pt": "O que está associado ao seu resultado"
+    },
+    "method": {
+      "es": "Cómo se calculó",
+      "en": "How it was calculated",
+      "pt": "Como foi calculado"
+    },
+    "disclaimer": {
+      "es": "Estimación educativa poblacional. No diagnostica ni sustituye atención médica.",
+      "en": "Educational population-based estimate. It does not diagnose or replace medical care.",
+      "pt": "Estimativa educativa populacional. Não diagnostica nem substitui cuidados médicos."
+    }
+  },
+  "errors": {
+    "generic": {
+      "es": "No pudimos calcular un resultado seguro. Revisa tus datos e inténtalo de nuevo.",
+      "en": "We couldn’t calculate a safe result. Review your inputs and try again.",
+      "pt": "Não conseguimos calcular um resultado seguro. Revise seus dados e tente novamente."
+    },
+    "out_of_scope": {
+      "es": "MorrowAge v1 solo admite edades de 40 a 69 años.",
+      "en": "MorrowAge v1 only supports ages 40 to 69.",
+      "pt": "MorrowAge v1 aceita apenas idades de 40 a 69 anos."
+    },
+    "email": {
+      "es": "Introduce un email válido.",
+      "en": "Enter a valid email address.",
+      "pt": "Digite um email válido."
+    }
+  },
+  "trust": {
+    "source": {
+      "es": "Coeficientes: Clift et al., 2021 · UK Biobank",
+      "en": "Coefficients: Clift et al., 2021 · UK Biobank",
+      "pt": "Coeficientes: Clift et al., 2021 · UK Biobank"
+    },
+    "method": {
+      "es": "Ver metodología y límites",
+      "en": "See methodology and limits",
+      "pt": "Ver metodologia e limites"
+    },
+    "privacy": {
+      "es": "Privacidad: minimizamos los datos y separamos entrega de marketing.",
+      "en": "Privacy: we minimize data and separate delivery from marketing.",
+      "pt": "Privacidade: minimizamos dados e separamos entrega de marketing."
+    }
+  }
+}

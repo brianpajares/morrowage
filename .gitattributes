@@ -1,0 +1,6 @@
+* text=auto eol=lf
+# Los archivos verificados por SHA-256 jamás se normalizan.
+drive/** -text
+spec/drive_manifest.json -text
+*.xlsx binary
+*.pdf binary

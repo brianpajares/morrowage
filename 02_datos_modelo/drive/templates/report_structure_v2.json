@@ -1,0 +1,92 @@
+{
+  "version": "2.1",
+  "sections": [
+    {
+      "id": "summary",
+      "free": true,
+      "title": {
+        "es": "Tu resultado",
+        "en": "Your result",
+        "pt": "Seu resultado"
+      },
+      "fields": [
+        "morrow_age_display",
+        "morrow_age_status",
+        "relative_hazard",
+        "preview_chart",
+        "preview_driver"
+      ]
+    },
+    {
+      "id": "sensitivity",
+      "free": false,
+      "title": {
+        "es": "Qué tan sensible es el resultado",
+        "en": "How sensitive the result is",
+        "pt": "Quão sensível é o resultado"
+      },
+      "fields": [
+        "measurement_sensitivity_range"
+      ]
+    },
+    {
+      "id": "drivers",
+      "free": false,
+      "title": {
+        "es": "Qué mueve tu resultado",
+        "en": "What drives your result",
+        "pt": "O que move seu resultado"
+      },
+      "fields": [
+        "all_drivers"
+      ]
+    },
+    {
+      "id": "scenarios",
+      "free": false,
+      "title": {
+        "es": "Escenarios",
+        "en": "Scenarios",
+        "pt": "Cenários"
+      },
+      "fields": [
+        "what_if_scenarios"
+      ]
+    },
+    {
+      "id": "plan",
+      "free": false,
+      "title": {
+        "es": "Plan de bienestar",
+        "en": "Wellness plan",
+        "pt": "Plano de bem-estar"
+      },
+      "fields": [
+        "action_plan"
+      ]
+    },
+    {
+      "id": "method",
+      "free": false,
+      "title": {
+        "es": "Cómo funciona",
+        "en": "How it works",
+        "pt": "Como funciona"
+      },
+      "fields": [
+        "methodology"
+      ]
+    }
+  ],
+  "footer_disclaimer": {
+    "es": "MorrowAge es una estimación de bienestar y riesgo relativo poblacional. No diagnostica, no predice con certeza tu longevidad y no sustituye atención médica.",
+    "en": "MorrowAge is a population-based wellness and relative-risk estimate. It does not diagnose, predict your lifespan with certainty, or replace medical care.",
+    "pt": "MorrowAge é uma estimativa populacional de bem-estar e risco relativo. Não diagnostica, não prevê sua longevidade com certeza e não substitui cuidados médicos."
+  },
+  "presentation_guardrails": {
+    "morrow_age": "No exact numeric value outside 40–69; render <40 or >69.",
+    "delta_age": "Hide exact delta when equivalent age is outside source reference range.",
+    "sensitivity": "Measurement scenario only; never label confidence interval.",
+    "action_plan": "Educational, non-causal; never derive behavior recommendation from coefficient sign alone."
+  }
+}

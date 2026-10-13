@@ -1,0 +1,456 @@
+openapi: 3.1.0
+info:
+  title: MorrowAge API
+  version: 4.0.0
+  description: API del MVP MorrowAge. El motor numérico es determinista y no usa LLM.
+servers:
+  - url: https://{host}
+    variables:
+      host:
+        default: localhost:3000
+tags:
+  - name: Public
+  - name: Reports
+  - name: Privacy
+  - name: Admin
+  - name: Stripe
+paths:
+  /api/health:
+    get:
+      tags: [Public]
+      operationId: health
+      responses:
+        "200":
+          description: Estado básico
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, appVersion]
+                properties:
+                  ok: {type: boolean}
+                  appVersion: {type: string}
+                  modelVersion: {type: string}
+                  driveSnapshotStatus:
+                    type: string
+                    enum: [valid, last_known_good, unavailable]
+  /api/calculate:
+    post:
+      tags: [Public]
+      operationId: calculate
+      description: Valida inputs y calcula outputs v2.1. No persiste email.
+      security:
+        - Turnstile: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalculateRequest"
+      responses:
+        "200":
+          description: Resultado estructurado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalculateResponse"
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503":
+          description: No existe snapshot válido del modelo
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+  /api/leads:
+    post:
+      tags: [Public]
+      operationId: createLead
+      security:
+        - Turnstile: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [calculationId, email, locale, serviceConsent]
+              properties:
+                calculationId: {type: string, format: uuid}
+                email: {type: string, format: email, maxLength: 320}
+                locale: {$ref: "#/components/schemas/Locale"}
+                serviceConsent: {type: boolean, const: true}
+                marketingOptIn: {type: boolean, default: false}
+                subscriptionWaitlistOptIn: {type: boolean, default: false}
+      responses:
+        "201":
+          description: Lead creado y report encolado/generado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [leadId, status]
+                properties:
+                  leadId: {type: string, format: uuid}
+                  status:
+                    type: string
+                    enum: [accepted, delivered, delivery_pending]
+                  reportUrl:
+                    type: [string, "null"]
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+  /api/report/{token}:
+    get:
+      tags: [Reports]
+      operationId: getReport
+      parameters:
+        - $ref: "#/components/parameters/ReportToken"
+      responses:
+        "200":
+          description: Informe web estructurado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "404": {$ref: "#/components/responses/NotFound"}
+        "410":
+          description: Token expirado
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+  /api/report/{token}/pdf:
+    get:
+      tags: [Reports]
+      operationId: getReportPdf
+      parameters:
+        - $ref: "#/components/parameters/ReportToken"
+      responses:
+        "200":
+          description: PDF del informe
+          content:
+            application/pdf:
+              schema:
+                type: string
+                contentEncoding: binary
+        "404": {$ref: "#/components/responses/NotFound"}
+        "410":
+          description: Token expirado
+  /api/privacy/delete-request:
+    post:
+      tags: [Privacy]
+      operationId: createDeletionRequest
+      security:
+        - Turnstile: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, locale]
+              properties:
+                email: {type: string, format: email, maxLength: 320}
+                locale: {$ref: "#/components/schemas/Locale"}
+                verificationId: {type: [string, "null"], maxLength: 32}
+      responses:
+        "202":
+          description: Solicitud registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [requestId, status]
+                properties:
+                  requestId: {type: string, format: uuid}
+                  status: {type: string, const: received}
+        "429": {$ref: "#/components/responses/RateLimited"}
+  /api/admin/leads:
+    get:
+      tags: [Admin]
+      operationId: listLeads
+      security:
+        - AdminSession: []
+      parameters:
+        - in: query
+          name: cursor
+          schema: {type: string}
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [requested, delivered, failed, paid]
+      responses:
+        "200":
+          description: Lista sin health payload
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminLead"
+                  nextCursor: {type: [string, "null"]}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+  /api/admin/funnel:
+    get:
+      tags: [Admin]
+      operationId: adminFunnel
+      security:
+        - AdminSession: []
+      responses:
+        "200":
+          description: Métricas agregadas
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+  /api/admin/reports/{id}/resend:
+    post:
+      tags: [Admin]
+      operationId: resendReport
+      security:
+        - AdminSession: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "202":
+          description: Reenvío aceptado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: {type: string, const: accepted}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: "#/components/responses/Forbidden"}
+  /api/stripe/checkout:
+    post:
+      tags: [Stripe]
+      operationId: createCheckout
+      description: Solo cuando MONETIZATION_MODE=stripe y STRIPE_ENABLED=true.
+      security:
+        - Turnstile: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [calculationId, email, locale, priceId]
+              properties:
+                calculationId: {type: string, format: uuid}
+                email: {type: string, format: email}
+                locale: {$ref: "#/components/schemas/Locale"}
+                priceId: {type: string, minLength: 1}
+      responses:
+        "201":
+          description: Checkout creado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [checkoutUrl]
+                properties:
+                  checkoutUrl: {type: string, format: uri}
+        "404":
+          description: Stripe deshabilitado
+  /api/stripe/webhook:
+    post:
+      tags: [Stripe]
+      operationId: stripeWebhook
+      description: Requiere cuerpo raw y verificación de firma Stripe. Idempotencia por event.id.
+      parameters:
+        - in: header
+          name: Stripe-Signature
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Evento procesado o ya procesado
+        "400":
+          description: Firma/payload inválido
+components:
+  securitySchemes:
+    Turnstile:
+      type: apiKey
+      in: header
+      name: X-Turnstile-Token
+    AdminSession:
+      type: http
+      scheme: bearer
+      bearerFormat: SupabaseAuthJWT
+  parameters:
+    ReportToken:
+      in: path
+      name: token
+      required: true
+      schema:
+        type: string
+        minLength: 32
+        maxLength: 256
+  schemas:
+    Locale:
+      type: string
+      enum: [es, en, pt]
+    Inputs:
+      type: object
+      additionalProperties: false
+      required:
+        - age_years
+        - sleep_hours
+        - self_rated_health
+        - cigarettes_per_day
+        - reaction_time_ms
+        - waist_to_height_ratio
+        - alcohol_units_week
+        - resting_hr_bpm
+      properties:
+        age_years: {type: integer, minimum: 40, maximum: 69}
+        sleep_hours: {type: number, minimum: 3, maximum: 12}
+        self_rated_health:
+          type: string
+          enum: [excellent, good, fair, poor]
+        cigarettes_per_day: {type: integer, minimum: 0, maximum: 60}
+        reaction_time_ms: {type: number, minimum: 250, maximum: 1500}
+        waist_to_height_ratio: {type: number, minimum: 0.3, maximum: 0.9}
+        alcohol_units_week: {type: number, minimum: 0, maximum: 100}
+        resting_hr_bpm: {type: integer, minimum: 35, maximum: 130}
+    CalculateRequest:
+      type: object
+      additionalProperties: false
+      required: [inputs, locale, scopeAccepted]
+      properties:
+        inputs: {$ref: "#/components/schemas/Inputs"}
+        locale: {$ref: "#/components/schemas/Locale"}
+        marketHintCoarse: {type: [string, "null"], maxLength: 8}
+        scopeAccepted: {type: boolean, const: true}
+    MeasurementSensitivity:
+      type: object
+      required: [type, bounds_aware, morrow_age_low, morrow_age_base, morrow_age_high]
+      properties:
+        type:
+          type: string
+          const: measurement_scenario_not_confidence_interval
+        bounds_aware: {type: boolean, const: true}
+        morrow_age_low: {type: number}
+        morrow_age_base: {type: number}
+        morrow_age_high: {type: number}
+    CalculationOutput:
+      type: object
+      required:
+        - model_version
+        - morrow_age_status
+        - morrow_age_display
+        - relative_hazard
+        - top_driver
+        - measurement_sensitivity
+      properties:
+        model_version: {type: string, const: "2.1"}
+        morrow_age: {type: number, description: Raw, server/audit only outside reference range}
+        morrow_age_status:
+          type: string
+          enum: [WITHIN_REFERENCE_RANGE, BELOW_REFERENCE_RANGE, ABOVE_REFERENCE_RANGE]
+        morrow_age_display: {type: string}
+        morrow_age_reference_range:
+          type: array
+          prefixItems: [{type: number}, {type: number}]
+        delta_age: {type: number}
+        relative_hazard: {type: number}
+        eta_nonage: {type: number}
+        delta_lp: {type: number}
+        top_driver:
+          type: object
+          required: [name, log_hazard_contribution]
+          properties:
+            name: {type: string}
+            log_hazard_contribution: {type: number}
+        drivers:
+          type: object
+          additionalProperties: {type: number}
+        measurement_sensitivity:
+          $ref: "#/components/schemas/MeasurementSensitivity"
+        absolute_mortality_10y:
+          type: "null"
+        absolute_mortality_10y_status:
+          type: string
+          const: LOCKED_REQUIRES_BASELINE_SURVIVAL_RECALIBRATION
+    CalculateResponse:
+      type: object
+      required: [calculationId, output]
+      properties:
+        calculationId: {type: string, format: uuid}
+        output: {$ref: "#/components/schemas/CalculationOutput"}
+        expiresAt: {type: string, format: date-time}
+    Report:
+      type: object
+      required: [verificationId, locale, modelVersion, accessTier, output]
+      properties:
+        verificationId: {type: string}
+        locale: {$ref: "#/components/schemas/Locale"}
+        modelVersion: {type: string}
+        accessTier:
+          type: string
+          enum: [validation_full, paid_full]
+        output: {$ref: "#/components/schemas/CalculationOutput"}
+        methodology:
+          type: object
+          additionalProperties: true
+    AdminLead:
+      type: object
+      description: No contiene health inputs, raw score ni report token/url.
+      required: [id, email, locale, status, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        email: {type: string, format: email}
+        locale: {$ref: "#/components/schemas/Locale"}
+        status: {type: string}
+        marketingOptIn: {type: boolean}
+        subscriptionWaitlistOptIn: {type: boolean}
+        createdAt: {type: string, format: date-time}
+        lastSentAt: {type: [string, "null"], format: date-time}
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: {type: string}
+        code: {type: string}
+  responses:
+    BadRequest:
+      description: Request inválido
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    RateLimited:
+      description: Rate limit excedido
+      headers:
+        Retry-After:
+          schema: {type: integer}
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    Unauthorized:
+      description: No autenticado
+    Forbidden:
+      description: No autorizado

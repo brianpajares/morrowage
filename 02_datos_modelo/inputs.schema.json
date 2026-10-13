@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://morrowage.example/schemas/inputs.schema.json",
+  "title": "MorrowAge Inputs v2.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "age_years",
+    "sleep_hours",
+    "self_rated_health",
+    "cigarettes_per_day",
+    "reaction_time_ms",
+    "waist_to_height_ratio",
+    "alcohol_units_week",
+    "resting_hr_bpm"
+  ],
+  "properties": {
+    "age_years": {
+      "type": "integer",
+      "minimum": 40,
+      "maximum": 69,
+      "unit": "years",
+      "help": {
+        "es": "Tu edad cumplida.",
+        "en": "Your age in completed years.",
+        "pt": "Sua idade em anos completos."
+      },
+      "where_to_find": {
+        "es": "Documento de identidad o de memoria.",
+        "en": "ID document or from memory.",
+        "pt": "Documento de identidade ou de memória."
+      },
+      "range_status": "verificado_source_population"
+    },
+    "sleep_hours": {
+      "type": "number",
+      "minimum": 3,
+      "maximum": 12,
+      "multipleOf": 0.1,
+      "unit": "hours/night",
+      "help": {
+        "es": "Promedio habitual de horas de sueño por noche.",
+        "en": "Your usual average sleep hours per night.",
+        "pt": "Média habitual de horas de sono por noite."
+      },
+      "where_to_find": {
+        "es": "De memoria o app de sueño.",
+        "en": "From memory or a sleep app.",
+        "pt": "De memória ou app de sono."
+      },
+      "range_status": "preliminar_product_guardrail"
+    },
+    "self_rated_health": {
+      "type": "string",
+      "enum": [
+        "excellent",
+        "good",
+        "fair",
+        "poor"
+      ],
+      "ui_labels": {
+        "es": {
+          "excellent": "Excelente",
+          "good": "Buena",
+          "fair": "Regular",
+          "poor": "Mala"
+        },
+        "en": {
+          "excellent": "Excellent",
+          "good": "Good",
+          "fair": "Fair",
+          "poor": "Poor"
+        },
+        "pt": {
+          "excellent": "Excelente",
+          "good": "Boa",
+          "fair": "Regular",
+          "poor": "Ruim"
+        }
+      },
+      "help": {
+        "es": "Cómo calificarías tu salud general hoy.",
+        "en": "How you would rate your overall health today.",
+        "pt": "Como você avaliaria sua saúde geral hoje."
+      },
+      "where_to_find": {
+        "es": "Tu propia percepción; no requiere historial médico.",
+        "en": "Your own assessment; no medical record needed.",
+        "pt": "Sua própria percepção; não exige prontuário médico."
+      },
+      "range_status": "not_applicable_enum_categories_verified"
+    },
+    "cigarettes_per_day": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 60,
+      "unit": "cigarettes/day",
+      "help": {
+        "es": "Cigarrillos que fumas actualmente en un día típico; 0 si no fumas cigarrillos.",
+        "en": "Cigarettes you currently smoke on a typical day; 0 if you do not smoke cigarettes.",
+        "pt": "Cigarros que você fuma atualmente em um dia típico; 0 se não fuma cigarros."
+      },
+      "where_to_find": {
+        "es": "De memoria.",
+        "en": "From memory.",
+        "pt": "De memória."
+      },
+      "range_status": "preliminar_product_guardrail"
+    },
+    "reaction_time_ms": {
+      "type": "number",
+      "minimum": 250,
+      "maximum": 1500,
+      "multipleOf": 1,
+      "unit": "ms",
+      "help": {
+        "es": "Mediana del test de reacción integrado; no escribas un valor estimado si el test está disponible.",
+        "en": "Median from the in-app reaction test; do not guess when the test is available.",
+        "pt": "Mediana do teste de reação no app; não estime quando o teste estiver disponível."
+      },
+      "where_to_find": {
+        "es": "Test breve dentro de MorrowAge.",
+        "en": "Short test inside MorrowAge.",
+        "pt": "Teste curto dentro do MorrowAge."
+      },
+      "range_status": "preliminar_product_guardrail"
+    },
+    "waist_to_height_ratio": {
+      "type": "number",
+      "minimum": 0.3,
+      "maximum": 0.9,
+      "multipleOf": 0.001,
+      "unit": "ratio",
+      "help": {
+        "es": "Cintura ÷ altura usando la misma unidad.",
+        "en": "Waist ÷ height using the same unit.",
+        "pt": "Cintura ÷ altura usando a mesma unidade."
+      },
+      "where_to_find": {
+        "es": "Cinta métrica; puedes usar cm/cm o in/in.",
+        "en": "Tape measure; cm/cm or in/in both work.",
+        "pt": "Fita métrica; cm/cm ou pol/pol funcionam."
+      },
+      "conversion": {
+        "metric": "waist_cm / height_cm",
+        "imperial": "waist_in / height_in",
+        "note": "ratio is unitless"
+      },
+      "range_status": "preliminar_product_guardrail"
+    },
+    "alcohol_units_week": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "multipleOf": 0.1,
+      "unit": "UK units/week (8 g ethanol/unit)",
+      "help": {
+        "es": "Alcohol semanal expresado en unidades UK. La app debe convertir bebidas estándar locales.",
+        "en": "Weekly alcohol in UK units. The app should convert local standard drinks.",
+        "pt": "Álcool semanal em unidades UK. O app deve converter doses padrão locais."
+      },
+      "where_to_find": {
+        "es": "De memoria; en EE.UU. 1 bebida estándar de 14 g = 1.75 unidades UK.",
+        "en": "From memory; in the US, one 14 g standard drink = 1.75 UK units.",
+        "pt": "De memória; nos EUA, uma dose padrão de 14 g = 1,75 unidades UK."
+      },
+      "conversion": {
+        "US_standard_drink": "x1.75",
+        "UK_unit": "x1.0",
+        "grams_ethanol": "grams/8"
+      },
+      "range_status": "preliminar_product_guardrail"
+    },
+    "resting_hr_bpm": {
+      "type": "integer",
+      "minimum": 35,
+      "maximum": 130,
+      "unit": "bpm",
+      "help": {
+        "es": "Frecuencia cardiaca en reposo, idealmente medida sentado y tranquilo.",
+        "en": "Resting heart rate, ideally measured while seated and calm.",
+        "pt": "Frequência cardíaca em repouso, idealmente sentado e tranquilo."
+      },
+      "where_to_find": {
+        "es": "Reloj/app de salud o medición manual de pulso.",
+        "en": "Watch/health app or manual pulse count.",
+        "pt": "Relógio/app de saúde ou contagem manual do pulso."
+      },
+      "range_status": "preliminar_product_guardrail"
+    }
+  },
+  "cross_validations": [
+    {
+      "rule": "reaction_time_ms must come from the current app protocol when available",
+      "severity": "warning"
+    },
+    {
+      "rule": "waist_to_height_ratio must be computed from waist and height measured in the same unit",
+      "severity": "error"
+    },
+    {
+      "rule": "if cigarettes_per_day=0, do not infer former-smoker status; the selected model does not encode it separately",
+      "severity": "info"
+    },
+    {
+      "rule": "reject rather than clamp values outside published/declared validity ranges",
+      "severity": "error"
+    },
+    {
+      "rule": "numeric min/max other than age are preliminary product guardrails, not published training extrema",
+      "severity": "warning"
+    }
+  ],
+  "ui_copy": {
+    "name": {
+      "es": "MorrowAge",
+      "en": "MorrowAge",
+      "pt": "MorrowAge"
+    },
+    "cta": {
+      "es": "Calcula tu edad equivalente de riesgo",
+      "en": "Calculate your risk-equivalent age",
+      "pt": "Calcule sua idade equivalente de risco"
+    },
+    "disclaimer_short": {
+      "es": "Estimación de bienestar basada en asociaciones poblacionales; no es diagnóstico ni edad biológica.",
+      "en": "A wellness estimate based on population associations; not a diagnosis or biological age.",
+      "pt": "Estimativa de bem-estar baseada em associações populacionais; não é diagnóstico nem idade biológica."
+    }
+  },
+  "x-ui-default-policy": "Do not prefill personal health answers in production. Only preselect locale/unit format; demo/test fixtures may use labeled synthetic defaults."
+}

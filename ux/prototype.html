@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MorrowAge · Prototype Etapa 3</title>
+<style>
+:root{
+ --bg:#F8FAFC;--surface:#FFFFFF;--surface2:#F1F5F9;--text:#0F172A;--muted:#475569;--border:#CBD5E1;
+ --primary:#0F766E;--primaryHover:#115E59;--primaryText:#FFFFFF;--danger:#B91C1C;--shadow:0 8px 24px rgba(15,23,42,.10);
+ --r:16px;--max:1120px;
+}
+@media(prefers-color-scheme:dark){
+ :root{--bg:#0B1220;--surface:#111827;--surface2:#1E293B;--text:#F8FAFC;--muted:#CBD5E1;--border:#475569;
+ --primary:#5EEAD4;--primaryHover:#99F6E4;--primaryText:#042F2E;--danger:#FCA5A5;--shadow:0 8px 24px rgba(0,0,0,.28)}
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit} a{color:inherit}.skip{position:absolute;left:-999px;top:8px}.skip:focus{left:8px;background:var(--surface);padding:8px 12px;z-index:20}
+header{height:64px;display:flex;align-items:center;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--surface) 92%,transparent);position:sticky;top:0;z-index:10}
+.nav{width:min(var(--max),calc(100% - 32px));margin:auto;display:flex;align-items:center;gap:16px}.brand{font-weight:800;letter-spacing:-.02em}.spacer{flex:1}
+.lang{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:8px}
+main{width:min(var(--max),calc(100% - 32px));margin:0 auto;padding:48px 0 80px}.screen{display:none}.screen.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:28px}
+.narrow{max-width:700px;margin:0 auto}.hero{max-width:800px;padding:60px 0}.eyebrow{font-size:14px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.08em}
+h1,h2,h3{line-height:1.15;letter-spacing:-.025em;margin:0 0 16px}h1{font-size:clamp(38px,6vw,64px)}h2{font-size:clamp(28px,4vw,40px)}h3{font-size:20px}.lede{font-size:20px;color:var(--muted);max-width:720px}
+.btn{min-height:48px;border:0;border-radius:12px;padding:12px 18px;font-weight:750;cursor:pointer}.btn.primary{background:var(--primary);color:var(--primaryText)}.btn.primary:hover{background:var(--primaryHover)}.btn.secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--primary);outline-offset:3px}.actions{display:flex;gap:12px;align-items:center;margin-top:24px}
+.trust{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.chip{padding:7px 10px;border-radius:999px;background:var(--surface2);color:var(--muted);font-size:14px}
+.progress-wrap{margin-bottom:24px}.progress-label{display:flex;justify-content:space-between;color:var(--muted);font-size:14px}.track{height:8px;background:var(--surface2);border-radius:999px;overflow:hidden;margin-top:8px}.bar{height:100%;background:var(--primary);width:12.5%;transition:width .2s}
+label{font-weight:700;display:block;margin-bottom:8px}.helper{color:var(--muted);font-size:14px;margin:8px 0 0}.input{width:100%;min-height:52px;border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:var(--surface);color:var(--text)}
+.error{color:var(--danger);font-weight:650;margin-top:8px;min-height:24px}.radio-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.radio{border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer}.radio:has(input:checked){outline:2px solid var(--primary)}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.result-number{font-size:clamp(56px,10vw,96px);font-weight:850;letter-spacing:-.06em;line-height:1;margin:18px 0}.muted{color:var(--muted)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.locked{position:relative;overflow:hidden}.locked:after{content:"🔒";position:absolute;right:14px;top:14px}.blur{filter:blur(4px);user-select:none;opacity:.55}
+.barline{height:12px;background:var(--surface2);border-radius:999px;position:relative;margin:28px 0}.dot{position:absolute;top:50%;width:20px;height:20px;border-radius:50%;background:var(--primary);transform:translate(-50%,-50%)}.dot.chrono{background:var(--text)}
+.processing-list{display:grid;gap:12px;margin-top:24px}.processing-item{padding:14px;border-radius:12px;background:var(--surface2)}
+.report-section{margin:18px 0;padding:22px;border:1px solid var(--border);border-radius:14px}.driver-row{display:grid;grid-template-columns:160px 1fr 100px;gap:12px;align-items:center;margin:12px 0}.driver-track{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden}.driver-fill{height:100%;background:var(--primary);width:40%}
+footer{border-top:1px solid var(--border);padding:24px 0;color:var(--muted);font-size:14px}.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.note{border-left:4px solid var(--primary);padding:12px 14px;background:var(--surface2);border-radius:8px;margin:16px 0}.demo{font-size:12px;background:var(--surface2);padding:6px 9px;border-radius:999px;color:var(--muted)}
+@media(max-width:767px){
+ main{padding-top:24px}.card{padding:20px}.hero{padding:30px 0}.grid3,.metric-grid{grid-template-columns:1fr}.radio-grid{grid-template-columns:1fr}.actions{position:sticky;bottom:0;background:var(--bg);padding:12px 0;z-index:5}.actions .primary{flex:1}.driver-row{grid-template-columns:1fr}.driver-row .driver-track{order:3}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header>
+ <div class="nav">
+  <div class="brand">MorrowAge</div><span class="demo">Prototype · demo data</span><div class="spacer"></div>
+  <select id="lang" class="lang" aria-label="Idioma"><option value="es">ES</option><option value="en">EN</option><option value="pt">PT</option></select>
+ </div>
+</header>
+<main id="main">
+<section id="landing" class="screen active">
+ <div class="hero">
+  <div class="eyebrow" data-k="landingEyebrow">Estimación educativa basada en datos poblacionales</div>
+  <h1 data-k="landingH1">Convierte 8 datos cotidianos en una edad equivalente de riesgo.</h1>
+  <p class="lede" data-k="landingSub">MorrowAge compara tu perfil con un benchmark del mismo modelo. No es edad biológica, diagnóstico ni una predicción cierta de longevidad.</p>
+  <div class="actions"><button class="btn primary" onclick="show('scope')" data-k="landingCta">Calcular mi MorrowAge</button></div>
+  <div class="trust"><span class="chip">✓ Deterministic</span><span class="chip">✓ Sources visible</span><span class="chip">✓ No lab</span><span class="chip">40–69</span></div>
+ </div>
+ <div class="grid3">
+  <div class="card"><h3>8 inputs</h3><p class="muted">Age, sleep, self-rated health, cigarettes, reaction, WHtR, alcohol and resting HR.</p></div>
+  <div class="card"><h3>Auditable</h3><p class="muted">Raw-input Cox coefficients published by Clift et al. 2021.</p></div>
+  <div class="card"><h3>Context first</h3><p class="muted">No absolute 10-year mortality probability in v1.</p></div>
+ </div>
+</section>
+
+<section id="scope" class="screen"><div class="card narrow">
+ <div class="eyebrow">MorrowAge</div><h2 data-k="scopeTitle">Antes de empezar</h2>
+ <p data-k="scopeBody">Esta herramienta es para adultos de 40–69 años y ofrece una estimación educativa de riesgo relativo poblacional. No la uses para tomar decisiones médicas.</p>
+ <div class="note">No pedimos nombre, fecha de nacimiento ni dirección para calcular.</div>
+ <div class="actions"><button class="btn secondary" onclick="show('landing')" data-k="back">Atrás</button><button class="btn primary" onclick="startCalc()" data-k="scopeCta">Entiendo, continuar</button></div>
+</div></section>
+
+<section id="calculator" class="screen"><div class="card narrow">
+ <div class="progress-wrap"><div class="progress-label"><span id="progressText">Paso 1 de 8</span><span>≤90s</span></div><div class="track"><div id="progressBar" class="bar"></div></div></div>
+ <div id="question"></div><div id="fieldError" class="error" role="alert"></div>
+ <div class="actions"><button class="btn secondary" onclick="prevStep()" data-k="back">Atrás</button><button class="btn primary" onclick="nextStep()" data-k="continue">Continuar</button></div>
+</div></section>
+
+<section id="processing" class="screen"><div class="card narrow" aria-live="polite">
+ <h2 data-k="processingTitle">Calculando tu resultado</h2><p class="muted" data-k="processingPrivacy">El cálculo numérico no necesita un LLM.</p>
+ <div class="processing-list"><div class="processing-item">✓ <span data-k="p1">Validando datos</span></div><div class="processing-item">✓ <span data-k="p2">Calculando</span></div><div class="processing-item">✓ <span data-k="p3">Preparando contexto</span></div></div>
+</div></section>
+
+<section id="preview" class="screen"><div class="narrow">
+ <div class="card">
+  <div class="eyebrow" data-k="previewEyebrow">Tu edad equivalente de riesgo</div><div id="resultNumber" class="result-number">—</div>
+  <p id="resultSentence" class="lede"></p>
+  <p class="muted" data-k="notBio">No es tu edad biológica ni una predicción de cuántos años vivirás.</p>
+  <div class="barline" aria-hidden="true"><span id="chronoDot" class="dot chrono"></span><span id="morrowDot" class="dot"></span></div>
+  <p id="driverCopy"></p><details><summary>Detalle técnico</summary><p id="hazardCopy" class="muted"></p></details>
+ </div>
+ <div class="grid3" style="margin-top:14px">
+  <div class="card locked"><h3>Sensibilidad</h3><div class="blur">42.1 — 47.7 — 50.0</div></div>
+  <div class="card locked"><h3>Drivers</h3><div class="blur">Health · Sleep · WHtR · HR</div></div>
+  <div class="card locked"><h3>Escenarios</h3><div class="blur">Scenario A · B · C</div></div>
+ </div>
+ <div class="actions"><button class="btn primary" onclick="show('gate')" data-k="previewCta">Ver mi informe completo</button></div>
+</div></section>
+
+<section id="gate" class="screen"><div class="card narrow">
+ <h2 data-k="gateTitle">Recibe el contexto, no solo la cifra</h2><p data-k="gateBody">Te enviaremos tu informe con sensibilidad de medición, drivers, supuestos y metodología. En esta fase es gratis.</p>
+ <label for="email" data-k="emailLabel">Tu email</label><input id="email" class="input" type="email" value="demo@example.com" autocomplete="email">
+ <p class="helper" data-k="privacy">Solo lo usamos para entregarte el informe. Marketing es opcional y separado.</p>
+ <label style="font-weight:500;margin-top:14px"><input id="marketing" type="checkbox"> <span data-k="marketing">Sí, quiero recibir novedades de MorrowAge (opcional).</span></label>
+ <div id="emailError" class="error" role="alert"></div>
+ <div class="actions"><button class="btn secondary" onclick="show('preview')" data-k="back">Atrás</button><button class="btn primary" onclick="submitGate()" data-k="gateCta">Enviarme el informe gratis</button></div>
+</div></section>
+
+<section id="success" class="screen"><div class="card narrow">
+ <h2 data-k="successTitle">Tu informe está listo</h2><p data-k="successBody">Revisa tu correo o ábrelo ahora. El enlace caduca por privacidad.</p>
+ <div class="actions"><button class="btn primary" onclick="buildReport();show('report')" data-k="openReport">Abrir mi informe</button></div>
+</div></section>
+
+<section id="report" class="screen"><div class="narrow">
+ <div class="card"><div class="eyebrow">Verification ID · MA-DEMO-21</div><h2>MorrowAge report</h2><div id="reportHero" class="result-number">—</div><p data-k="notBio">No es tu edad biológica ni una predicción de cuántos años vivirás.</p></div>
+ <div class="report-section"><h3 data-k="sensTitle">Sensibilidad de medición</h3><p class="muted" data-k="sensNote">No es un intervalo de confianza. Muestra cambios de medición plausibles dentro de los guardrails.</p><p id="sensCopy"></p></div>
+ <div class="report-section"><h3 data-k="driversTitle">Qué se asocia con tu resultado</h3><div id="drivers"></div><p class="muted">Association ≠ causation.</p></div>
+ <div class="report-section"><h3>Metodología</h3><p>MorrowAge = age × exp((LP_nonage − LP_benchmark) / 3.8622). Coefficients: Clift et al. 2021, raw-input Cox model 3. Absolute 10-year risk is locked.</p></div>
+ <div class="report-section"><h3>Limitaciones</h3><p>UK Biobank source cohort; no local country calibration. Raw equivalent age is presentation-censored outside 40–69. Educational population-based estimate; not medical advice.</p></div>
+ </div></section>
+
+<section id="how" class="screen"><div class="card narrow"><h2>Cómo funciona / How it works / Como funciona</h2>
+ <p>El motor usa coeficientes Cox publicados y compara los términos no-edad con un benchmark. Luego invierte exactamente el término log(age) para obtener una edad equivalente de riesgo.</p>
+ <div class="note"><code>MorrowAge = age × exp((LP_nonage − LP_ref) / 3.8622)</code></div>
+ <p>No usa el C-Score propietario. No reconstruye una probabilidad absoluta sin baseline survival validada.</p>
+ <div class="actions"><button class="btn primary" onclick="show('landing')">Home</button></div></div></section>
+
+<section id="faq" class="screen"><div class="card narrow"><h2>FAQ</h2>
+ <h3>¿Es edad biológica?</h3><p>No. Es una edad equivalente de riesgo dentro de un modelo poblacional.</p>
+ <h3>¿Por qué veo &lt;40 o &gt;69?</h3><p>La transformación bruta cayó fuera del rango etario de referencia; ocultamos el valor exacto para no fingir precisión.</p>
+ <h3>¿El rango es un intervalo de confianza?</h3><p>No. Es sensibilidad de medición bounds-aware.</p>
+ <h3>¿Predice cuánto viviré?</h3><p>No.</p>
+ <div class="actions"><button class="btn primary" onclick="show('landing')">Home</button></div></div></section>
+
+<section id="legal" class="screen"><div class="card narrow"><h2>Privacidad y límites</h2>
+ <p>Este prototipo no envía datos. En producción: minimizar datos; separar delivery de marketing; no enviar health inputs/results a analytics/admin; report links expirables; soportar deletion.</p>
+ <p>Uso educativo/general wellness. No diagnóstico, tratamiento, emergencia, underwriting, empleo o crédito.</p>
+ <div class="actions"><button class="btn primary" onclick="show('landing')">Home</button></div></div></section>
+
+<section id="admin" class="screen"><div class="card narrow"><h2>Admin · aggregate-only</h2>
+ <div class="grid3"><div class="card"><h3>Start→Preview</h3><div class="result-number" style="font-size:42px">74%</div></div><div class="card"><h3>Preview→Gate</h3><div class="result-number" style="font-size:42px">31%</div></div><div class="card"><h3>Median time</h3><div class="result-number" style="font-size:42px">68s</div></div></div>
+ <p class="muted">Demo metrics only. No emails, raw health inputs, raw results or report URLs.</p><div class="actions"><button class="btn primary" onclick="show('landing')">Home</button></div></div></section>
+</main>
+
+<footer><div class="nav"><div class="footer-links">
+ <a href="#" onclick="show('how');return false">How it works</a><a href="#" onclick="show('faq');return false">FAQ</a><a href="#" onclick="show('legal');return false">Privacy & Legal</a><a href="#" onclick="show('admin');return false">Admin demo</a>
+ </div></div></footer>
+
+<script>
+const I18N={
+ es:{landingEyebrow:"Estimación educativa basada en datos poblacionales",landingH1:"Convierte 8 datos cotidianos en una edad equivalente de riesgo.",landingSub:"MorrowAge compara tu perfil con un benchmark del mismo modelo. No es edad biológica, diagnóstico ni una predicción cierta de longevidad.",landingCta:"Calcular mi MorrowAge",scopeTitle:"Antes de empezar",scopeBody:"Esta herramienta es para adultos de 40–69 años y ofrece una estimación educativa de riesgo relativo poblacional. No la uses para tomar decisiones médicas.",scopeCta:"Entiendo, continuar",back:"Atrás",continue:"Continuar",processingTitle:"Calculando tu resultado",processingPrivacy:"El cálculo numérico no necesita un LLM.",p1:"Validando datos",p2:"Calculando",p3:"Preparando contexto",previewEyebrow:"Tu edad equivalente de riesgo",notBio:"No es tu edad biológica ni una predicción de cuántos años vivirás.",previewCta:"Ver mi informe completo",gateTitle:"Recibe el contexto, no solo la cifra",gateBody:"Te enviaremos tu informe con sensibilidad de medición, drivers, supuestos y metodología. En esta fase es gratis.",emailLabel:"Tu email",privacy:"Solo lo usamos para entregarte el informe. Marketing es opcional y separado.",marketing:"Sí, quiero recibir novedades de MorrowAge (opcional).",gateCta:"Enviarme el informe gratis",successTitle:"Tu informe está listo",successBody:"Revisa tu correo o ábrelo ahora. El enlace caduca por privacidad.",openReport:"Abrir mi informe",sensTitle:"Sensibilidad de medición",sensNote:"No es un intervalo de confianza. Muestra cambios de medición plausibles dentro de los guardrails.",driversTitle:"Qué se asocia con tu resultado"},
+ en:{landingEyebrow:"Educational estimate based on population data",landingH1:"Turn 8 everyday inputs into a risk-equivalent age.",landingSub:"MorrowAge compares your profile with a benchmark from the same model. It is not biological age, a diagnosis, or a certain prediction of lifespan.",landingCta:"Calculate my MorrowAge",scopeTitle:"Before you start",scopeBody:"This tool is for adults ages 40–69 and provides an educational population-based relative-risk estimate. Do not use it to make medical decisions.",scopeCta:"I understand, continue",back:"Back",continue:"Continue",processingTitle:"Calculating your result",processingPrivacy:"The numeric calculation does not require an LLM.",p1:"Validating inputs",p2:"Calculating",p3:"Preparing context",previewEyebrow:"Your risk-equivalent age",notBio:"This is not your biological age or a prediction of how long you will live.",previewCta:"See my full report",gateTitle:"Get the context, not just the number",gateBody:"We’ll send your report with measurement sensitivity, drivers, assumptions, and methodology. It’s free in this phase.",emailLabel:"Your email",privacy:"We only use it to deliver your report. Marketing is optional and separate.",marketing:"Yes, send me MorrowAge updates (optional).",gateCta:"Send me the free report",successTitle:"Your report is ready",successBody:"Check your email or open it now. The link expires for privacy.",openReport:"Open my report",sensTitle:"Measurement sensitivity",sensNote:"This is not a confidence interval. It shows plausible measurement changes within guardrails.",driversTitle:"What is associated with your result"},
+ pt:{landingEyebrow:"Estimativa educativa baseada em dados populacionais",landingH1:"Transforme 8 dados do dia a dia em uma idade equivalente de risco.",landingSub:"MorrowAge compara seu perfil com um benchmark do mesmo modelo. Não é idade biológica, diagnóstico nem uma previsão certa de longevidade.",landingCta:"Calcular meu MorrowAge",scopeTitle:"Antes de começar",scopeBody:"Esta ferramenta é para adultos de 40–69 anos e oferece uma estimativa educativa de risco relativo populacional. Não a use para tomar decisões médicas.",scopeCta:"Entendo, continuar",back:"Voltar",continue:"Continuar",processingTitle:"Calculando seu resultado",processingPrivacy:"O cálculo numérico não precisa de um LLM.",p1:"Validando dados",p2:"Calculando",p3:"Preparando contexto",previewEyebrow:"Sua idade equivalente de risco",notBio:"Isto não é sua idade biológica nem uma previsão de quantos anos você viverá.",previewCta:"Ver meu relatório completo",gateTitle:"Receba o contexto, não apenas o número",gateBody:"Enviaremos seu relatório com sensibilidade de medição, drivers, premissas e metodologia. Nesta fase é grátis.",emailLabel:"Seu email",privacy:"Usamos apenas para entregar seu relatório. Marketing é opcional e separado.",marketing:"Sim, quero receber novidades do MorrowAge (opcional).",gateCta:"Enviar meu relatório grátis",successTitle:"Seu relatório está pronto",successBody:"Confira seu email ou abra agora. O link expira por privacidade.",openReport:"Abrir meu relatório",sensTitle:"Sensibilidade de medição",sensNote:"Não é um intervalo de confiança. Mostra mudanças plausíveis de medição dentro dos guardrails.",driversTitle:"O que está associado ao seu resultado"}
+};
+const QUESTIONS={
+ es:[
+  ["¿Cuántos años tienes?","El modelo de referencia cubre de 40 a 69 años.","number","age",40,69,1],
+  ["En promedio, ¿cuántas horas duermes por noche?","Usa tu promedio habitual, no una noche excepcional.","number","sleep",3,12,.25],
+  ["En general, ¿cómo calificarías tu salud?","Elige la opción que mejor te describa.","radio","srh"],
+  ["¿Cuántos cigarrillos fumas al día actualmente?","Si no fumas actualmente, escribe 0.","number","cigs",0,60,1],
+  ["Mide tu tiempo de reacción","En producción se usa una prueba integrada con protocolo consistente. En este prototipo puedes editar el resultado demo en ms.","number","reaction",250,1500,1],
+  ["¿Cuál es tu relación cintura/altura?","Prototipo: introduce directamente cintura ÷ altura. En producción se piden cintura y altura con selector cm/in.","number","wthr",.3,.9,.01],
+  ["En una semana habitual, ¿cuántas unidades UK de alcohol consumes?","En US la UI convierte standard drinks ×1.75; 1 UK unit = 8 g etanol.","number","alcohol",0,100,.25],
+  ["¿Cuál es tu frecuencia cardiaca en reposo habitual?","Usa bpm de un momento de reposo habitual.","number","rhr",35,130,1]
+ ],
+ en:[
+  ["How old are you?","The reference model covers ages 40 to 69.","number","age",40,69,1],
+  ["On average, how many hours do you sleep per night?","Use your usual average, not an exceptional night.","number","sleep",3,12,.25],
+  ["In general, how would you rate your health?","Choose the option that best describes you.","radio","srh"],
+  ["How many cigarettes do you currently smoke per day?","If you do not currently smoke, enter 0.","number","cigs",0,60,1],
+  ["Measure your reaction time","Production uses a built-in consistent protocol. Edit the demo milliseconds here.","number","reaction",250,1500,1],
+  ["What is your waist-to-height ratio?","Prototype: enter waist ÷ height directly. Production asks both with cm/in.","number","wthr",.3,.9,.01],
+  ["In a typical week, how many UK alcohol units do you drink?","US UI converts standard drinks ×1.75; 1 UK unit = 8 g ethanol.","number","alcohol",0,100,.25],
+  ["What is your usual resting heart rate?","Use bpm from a usual resting period.","number","rhr",35,130,1]
+ ],
+ pt:[
+  ["Quantos anos você tem?","O modelo de referência cobre de 40 a 69 anos.","number","age",40,69,1],
+  ["Em média, quantas horas você dorme por noite?","Use sua média habitual.","number","sleep",3,12,.25],
+  ["Em geral, como você avaliaria sua saúde?","Escolha a opção que melhor descreve você.","radio","srh"],
+  ["Quantos cigarros você fuma atualmente por dia?","Se não fuma, digite 0.","number","cigs",0,60,1],
+  ["Meça seu tempo de reação","Produção usa teste integrado; edite os ms demo aqui.","number","reaction",250,1500,1],
+  ["Qual é sua relação cintura/altura?","Protótipo: informe cintura ÷ altura diretamente.","number","wthr",.3,.9,.01],
+  ["Em uma semana habitual, quantas unidades UK de álcool você consome?","UI US converte standard drinks ×1,75; 1 unit = 8 g etanol.","number","alcohol",0,100,.25],
+  ["Qual é sua frequência cardíaca de repouso habitual?","Use bpm de um período habitual de repouso.","number","rhr",35,130,1]
+ ]
+};
+let lang="es",step=0;
+const data={age:52,sleep:7,srh:"good",cigs:0,reaction:540,wthr:.52,alcohol:7,rhr:68};
+let result=null;
+const B={age:3.8622,sleep:.075,good:.0964,fair:.631,poor:2.5479,cigs:.0685,reaction:.0008,wthr:1.1679,alcohol:.0077,rhr:.0133};
+const REF={sleep:7.16,srh:.29910076,cigs:0,reaction:558.03,wthr:.54,alcohol:14.34,rhr:69.84,lp:2.95248076};
+const RANGE={sleep:[3,12],reaction:[250,1500],wthr:[.3,.9],alcohol:[0,100],rhr:[35,130]};
+const SENS={sleep:.5,reaction:50,wthr:.02,alcohol:2,rhr:5};
+function show(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo(0,0)}
+function applyLang(){
+ document.documentElement.lang=lang;
+ document.querySelectorAll("[data-k]").forEach(el=>{const k=el.dataset.k;if(I18N[lang][k])el.textContent=I18N[lang][k]});
+ if(document.getElementById("calculator").classList.contains("active")) renderStep();
+}
+document.getElementById("lang").addEventListener("change",e=>{lang=e.target.value;applyLang()});
+function startCalc(){step=0;show("calculator");renderStep()}
+function renderStep(){
+ const q=QUESTIONS[lang][step], pct=((step+1)/8)*100;
+ document.getElementById("progressText").textContent=(lang==="es"?"Paso":lang==="en"?"Step":"Etapa")+" "+(step+1)+" "+(lang==="es"?"de":"of")+" 8";
+ document.getElementById("progressBar").style.width=pct+"%";
+ let html=`<h2>${q[0]}</h2><p class="helper">${q[1]}</p>`;
+ if(q[2]==="radio"){
+  const opts=lang==="en"?[["excellent","Excellent"],["good","Good"],["fair","Fair"],["poor","Poor"]]:lang==="pt"?[["excellent","Excelente"],["good","Boa"],["fair","Regular"],["poor","Ruim"]]:[["excellent","Excelente"],["good","Buena"],["fair","Regular"],["poor","Mala"]];
+  html+=`<div class="radio-grid" style="margin-top:18px">${opts.map(o=>`<label class="radio"><input type="radio" name="srh" value="${o[0]}" ${data.srh===o[0]?"checked":""}> ${o[1]}</label>`).join("")}</div>`;
+ }else{
+  html+=`<label for="stepInput" style="margin-top:18px">${q[0]}</label><input id="stepInput" class="input" type="number" min="${q[4]}" max="${q[5]}" step="${q[6]}" value="${data[q[3]]}">`;
+ }
+ document.getElementById("question").innerHTML=html;document.getElementById("fieldError").textContent="";
+}
+function saveStep(){
+ const q=QUESTIONS[lang][step];
+ if(q[2]==="radio"){const el=document.querySelector('input[name="srh"]:checked');if(!el)return false;data.srh=el.value;return true}
+ const el=document.getElementById("stepInput"), v=Number(el.value);
+ if(!Number.isFinite(v)||v<q[4]||v>q[5]||(["age","cigs","rhr"].includes(q[3])&&!Number.isInteger(v))){
+  document.getElementById("fieldError").textContent=(lang==="en"?`Enter a valid value between ${q[4]} and ${q[5]}.`:lang==="pt"?`Digite um valor válido entre ${q[4]} e ${q[5]}.`:`Introduce un valor válido entre ${q[4]} y ${q[5]}.`);el.focus();return false
+ }
+ data[q[3]]=v;return true
+}
+function nextStep(){if(!saveStep())return;if(step<7){step++;renderStep()}else{runEngine();show("processing");setTimeout(()=>{renderPreview();show("preview")},450)}}
+function prevStep(){if(step===0){show("scope")}else{saveStep();step--;renderStep()}}
+function runEngine(){
+ const srhCoef={excellent:0,good:B.good,fair:B.fair,poor:B.poor}[data.srh];
+ const drivers={
+  sleep:B.sleep*(data.sleep-REF.sleep),self_rated_health:srhCoef-REF.srh,cigarettes_per_day:B.cigs*(data.cigs-REF.cigs),
+  reaction_time_ms:B.reaction*(data.reaction-REF.reaction),waist_to_height_ratio:B.wthr*(data.wthr-REF.wthr),
+  alcohol_units_week:B.alcohol*(data.alcohol-REF.alcohol),resting_hr_bpm:B.rhr*(data.rhr-REF.rhr)
+ };
+ const delta=Object.values(drivers).reduce((a,b)=>a+b,0), raw=data.age*Math.exp(delta/B.age), hr=Math.exp(delta);
+ let lowLP=0,highLP=0;for(const k of Object.keys(SENS)){const [lo,hi]=RANGE[k],v=data[k],d=SENS[k],beta=B[k];lowLP+=beta*Math.min(d,Math.max(0,v-lo));highLP+=beta*Math.min(d,Math.max(0,hi-v))}
+ const low=data.age*Math.exp((delta-lowLP)/B.age), high=data.age*Math.exp((delta+highLP)/B.age);
+ const status=raw<40?"BELOW_REFERENCE_RANGE":raw>69?"ABOVE_REFERENCE_RANGE":"WITHIN_REFERENCE_RANGE";
+ const display=raw<40?"<40":raw>69?">69":raw.toFixed(1);
+ const top=Object.entries(drivers).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
+ result={raw,display,status,hr,drivers,top,low,high}
+}
+function safeDisplay(x){return x<40?"<40":x>69?">69":x.toFixed(1)}
+function renderPreview(){
+ const r=result;document.getElementById("resultNumber").textContent=r.display;
+ const sentence=lang==="en"?(r.status==="WITHIN_REFERENCE_RANGE"?`Your estimated MorrowAge is ${r.display}.`:`Your result is outside the model reference age range: ${r.display}.`):lang==="pt"?(r.status==="WITHIN_REFERENCE_RANGE"?`Seu MorrowAge estimado é ${r.display}.`:`Seu resultado está fora da faixa etária de referência do modelo: ${r.display}.`):(r.status==="WITHIN_REFERENCE_RANGE"?`Tu MorrowAge estimada es ${r.display}.`:`Tu resultado está fuera del rango etario de referencia del modelo: ${r.display}.`);
+ document.getElementById("resultSentence").textContent=sentence;
+ document.getElementById("driverCopy").textContent=(lang==="en"?"Largest association vs benchmark: ":lang==="pt"?"Maior associação vs benchmark: ":"Mayor asociación vs benchmark: ")+r.top[0].replaceAll("_"," ");
+ document.getElementById("hazardCopy").textContent=(lang==="en"?"Relative hazard vs benchmark at the same chronological age: ":lang==="pt"?"Hazard relativo vs benchmark na mesma idade cronológica: ":"Hazard relativo vs benchmark a la misma edad cronológica: ")+r.hr.toFixed(2)+"×. Not an absolute probability.";
+ const pctAge=a=>Math.max(0,Math.min(100,(a-40)/(69-40)*100));document.getElementById("chronoDot").style.left=pctAge(data.age)+"%";
+ document.getElementById("morrowDot").style.left=(r.status==="BELOW_REFERENCE_RANGE"?0:r.status==="ABOVE_REFERENCE_RANGE"?100:pctAge(r.raw))+"%";
+}
+function submitGate(){const e=document.getElementById("email");if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e.value)){document.getElementById("emailError").textContent=I18N[lang].emailError||"Invalid email";e.focus();return}show("success")}
+function buildReport(){
+ document.getElementById("reportHero").textContent=result.display;
+ document.getElementById("sensCopy").textContent=`${safeDisplay(result.low)} — ${safeDisplay(result.raw)} — ${safeDisplay(result.high)}`;
+ const max=Math.max(...Object.values(result.drivers).map(Math.abs),.0001);
+ document.getElementById("drivers").innerHTML=Object.entries(result.drivers).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).map(([k,v])=>`<div class="driver-row"><strong>${k.replaceAll("_"," ")}</strong><div class="driver-track"><div class="driver-fill" style="width:${Math.max(4,Math.abs(v)/max*100)}%"></div></div><span>${v>=0?"+":""}${v.toFixed(3)}</span></div>`).join("")
+}
+applyLang();
+</script>
+</body>
+</html>

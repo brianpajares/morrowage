@@ -1,0 +1,297 @@
+{
+  "app": "MorrowAge",
+  "version": "2.1",
+  "fecha": "2026-10-06",
+  "status": "QA_VERIFIED_RELATIVE_MODEL_ABSOLUTE_RISK_LOCKED",
+  "objetivo": {
+    "principal": "Estimar una edad equivalente de riesgo (MorrowAge) a partir del predictor lineal de un modelo Cox publicado, y un hazard relativo frente a un perfil de referencia del mismo modelo.",
+    "bloqueado_v1": "Probabilidad absoluta de mortalidad a 10 años. No se publica la supervivencia basal S0(t) necesaria en el paper seleccionado y no se inventa.",
+    "target_futuro": "Probabilidad calibrada de mortalidad a 10 años en población US tras recalibración/entrenamiento con NHANES linked mortality."
+  },
+  "modelo_principal": {
+    "nombre": "Clift et al. 2021 — raw-input Cox proportional hazards, model 3",
+    "fuente": "https://mhealth.jmir.org/2021/2/e25655",
+    "evidencia": "UK Biobank, N=420,560; 16,188 muertes; seguimiento máximo 13.9 años; c-statistic reportada 0.74.",
+    "licencia": "CC BY para el artículo final; se usan coeficientes publicados, no el C-Score propietario.",
+    "formula_math": {
+      "predictor": "η = 3.8622·ln(age) + 0.0750·sleep + β_SRH + 0.0685·cigs + 0.0008·reaction_ms + 1.1679·WHtR + 0.0077·alcohol_units + 0.0133·RHR",
+      "srh": "β_SRH = 0 excellent; 0.0964 good; 0.6310 fair; 2.5479 poor",
+      "non_age": "η_nonage = η - 3.8622·ln(age)",
+      "reference_non_age": "η_ref_nonage = Σ β_j·x_ref,j = 2.95248076",
+      "relative_hazard_same_age": "HR_ref = exp(η_nonage - η_ref_nonage)",
+      "morrow_age": "MorrowAge = age · exp((η_nonage - η_ref_nonage)/3.8622)",
+      "delta_age": "ΔAge = MorrowAge - age"
+    },
+    "pseudocodigo": [
+      "validar age 40..69 y demás rangos",
+      "mapear self_rated_health a coeficiente",
+      "calcular eta_nonage con los siete términos no-edad",
+      "delta_lp = eta_nonage - benchmark_nonage",
+      "relative_hazard = exp(delta_lp)",
+      "morrow_age = age * exp(delta_lp / beta_log_age)",
+      "delta_age = morrow_age - age",
+      "calcular sensibilidad bounds-aware: recortar cada perturbación al rango operativo; no es IC"
+    ]
+  },
+  "variables": [
+    {
+      "name": "age_years",
+      "tipo": "integer",
+      "unidad": "años",
+      "rango": [
+        40,
+        69
+      ],
+      "coeficiente": "3.8622 sobre ln(age)",
+      "fuente": "S01",
+      "range_status": "verificado_source_population"
+    },
+    {
+      "name": "sleep_hours",
+      "tipo": "number",
+      "unidad": "h/noche",
+      "rango": [
+        3,
+        12
+      ],
+      "coeficiente": 0.075,
+      "fuente": "S01",
+      "range_status": "preliminar_product_guardrail_not_training_range",
+      "coef_source": "S01",
+      "range_source": "MorrowAge v2 operational guardrail"
+    },
+    {
+      "name": "self_rated_health",
+      "tipo": "enum",
+      "unidad": "categoría",
+      "valores": [
+        "excellent",
+        "good",
+        "fair",
+        "poor"
+      ],
+      "coeficientes": {
+        "excellent": 0,
+        "good": 0.0964,
+        "fair": 0.631,
+        "poor": 2.5479
+      },
+      "fuente": "S01",
+      "category_status": "verificado_source_categories"
+    },
+    {
+      "name": "cigarettes_per_day",
+      "tipo": "integer",
+      "unidad": "cigarrillos/día",
+      "rango": [
+        0,
+        60
+      ],
+      "coeficiente": 0.0685,
+      "fuente": "S01",
+      "range_status": "preliminar_product_guardrail_not_training_range",
+      "coef_source": "S01",
+      "range_source": "MorrowAge v2 operational guardrail"
+    },
+    {
+      "name": "reaction_time_ms",
+      "tipo": "number",
+      "unidad": "ms",
+      "rango": [
+        250,
+        1500
+      ],
+      "coeficiente": 0.0008,
+      "fuente": "S01",
+      "range_status": "preliminar_product_guardrail_not_training_range",
+      "coef_source": "S01",
+      "range_source": "MorrowAge v2 operational guardrail"
+    },
+    {
+      "name": "waist_to_height_ratio",
+      "tipo": "number",
+      "unidad": "ratio",
+      "rango": [
+        0.3,
+        0.9
+      ],
+      "coeficiente": 1.1679,
+      "fuente": "S01",
+      "range_status": "preliminar_product_guardrail_not_training_range",
+      "coef_source": "S01",
+      "range_source": "MorrowAge v2 operational guardrail"
+    },
+    {
+      "name": "alcohol_units_week",
+      "tipo": "number",
+      "unidad": "unidades UK/semana (8g etanol/unidad)",
+      "rango": [
+        0,
+        100
+      ],
+      "coeficiente": 0.0077,
+      "fuente": "S01/S09",
+      "range_status": "preliminar_product_guardrail_not_training_range",
+      "coef_source": "S01",
+      "range_source": "MorrowAge v2 operational guardrail"
+    },
+    {
+      "name": "resting_hr_bpm",
+      "tipo": "integer",
+      "unidad": "bpm",
+      "rango": [
+        35,
+        130
+      ],
+      "coeficiente": 0.0133,
+      "fuente": "S01",
+      "range_status": "preliminar_product_guardrail_not_training_range",
+      "coef_source": "S01",
+      "range_source": "MorrowAge v2 operational guardrail"
+    }
+  ],
+  "parametros": [
+    {
+      "name": "beta_log_age",
+      "value": 3.8622,
+      "unit": "coef",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_sleep",
+      "value": 0.075,
+      "unit": "coef/h",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_srh_good",
+      "value": 0.0964,
+      "unit": "coef",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_srh_fair",
+      "value": 0.631,
+      "unit": "coef",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_srh_poor",
+      "value": 2.5479,
+      "unit": "coef",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_cigs",
+      "value": 0.0685,
+      "unit": "coef/cig_d",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_reaction",
+      "value": 0.0008,
+      "unit": "coef/ms",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_wthr",
+      "value": 1.1679,
+      "unit": "coef/ratio",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_alcohol",
+      "value": 0.0077,
+      "unit": "coef/UK_unit_week",
+      "source": "S01",
+      "status": "verificado"
+    },
+    {
+      "name": "beta_rhr",
+      "value": 0.0133,
+      "unit": "coef/bpm",
+      "source": "S01",
+      "status": "verificado"
+    }
+  ],
+  "benchmark": {
+    "id": "UKB_mean_except_smoking_never_reference_v1",
+    "descripcion": "Valores medios publicados del cohort analítico para variables continuas + media ponderada de self-rated health; smoking fijado explícitamente a 0 como referencia never-smoker (no se presenta como media poblacional).",
+    "values": {
+      "sleep_hours": 7.16,
+      "self_rated_health_coef": 0.29910076,
+      "cigarettes_per_day": 0,
+      "reaction_time_ms": 558.03,
+      "waist_to_height_ratio": 0.54,
+      "alcohol_units_week": 14.34,
+      "resting_hr_bpm": 69.84
+    },
+    "non_age_lp": 2.95248076,
+    "status": "verificado para medias publicadas; smoking=0 es decisión de benchmark"
+  },
+  "supuestos": [
+    "La transformación a edad equivalente invierte exactamente el término log(age) del predictor Cox y mantiene fijos los factores del benchmark.",
+    "MorrowAge es una edad equivalente de riesgo, no edad biológica ni diagnóstico.",
+    "Los coeficientes se tratan como asociaciones, no como efectos causales; por ejemplo, el coeficiente positivo de sueño no justifica recomendar dormir menos.",
+    "El usuario puede medir reaction_time_ms en la app; el protocolo debe ser consistente.",
+    "El modelo original procede de UK Biobank; antes de afirmar calibración absoluta por país hace falta recalibración local.",
+    "Los rangos numéricos de validación distintos de edad son guardrails de producto preliminares, no mínimos/máximos publicados de entrenamiento; deben afinarse en QA con distribución de datos."
+  ],
+  "rango_validez": {
+    "edad": [
+      40,
+      69
+    ],
+    "poblacion": "Adultos comunitarios; no usar en embarazo, enfermedad terminal, menores, ni fuera de rango.",
+    "geografia": "Transformación relativa utilizable como demostración basada en UKB; no afirmar calibración poblacional US/UK/CA hasta validación local.",
+    "extrapolacion": "Inputs: no permitida fuera de rangos. Output MorrowAge bruto puede caer fuera de 40–69 por inversión matemática; en UI se censura como <40 o >69 y no se presenta el valor exacto."
+  },
+  "incertidumbre": {
+    "tipo": "escenario de sensibilidad a medición, no intervalo de confianza",
+    "default_deltas": {
+      "sleep_hours": 0.5,
+      "reaction_time_ms": 50,
+      "waist_to_height_ratio": 0.02,
+      "alcohol_units_week": 2,
+      "resting_hr_bpm": 5
+    },
+    "status": "preliminar",
+    "nota": "Los anchos son supuestos de UX/medición y deben validarse con protocolo de captura; no son errores estándar publicados. Cada perturbación se recorta al guardrail del input para evitar escenarios imposibles."
+  },
+  "sensibilidad": {
+    "metodo": "Para cada variable continua, usar Δdown=min(Δdefault, x-min) y Δup=min(Δdefault, max-x); sumar β·Δ por dirección y recalcular MorrowAge. No extrapolar fuera de guardrails.",
+    "interpretacion": "Mostrar escenarios de medición bounds-aware, nunca un intervalo de confianza, causalidad ni consejo clínico."
+  },
+  "modelo_respaldo": {
+    "nombre": "Ajnakina et al. 2021 Cox-Lasso 10-year mortality",
+    "fuente": "https://link.springer.com/article/10.1186/s12874-020-01204-7",
+    "uso": "Respaldo metodológico para población mayor; no sustituye v1 por mayor carga de inputs y población distinta."
+  },
+  "open_issues": [
+    "Entrenar/recalibrar baseline survival a 10 años con NHANES linked mortality para recuperar probabilidad absoluta US.",
+    "Validar discriminación/calibración de la transformación MorrowAge en un holdout externo.",
+    "Definir y validar protocolo de reaction time dentro de la app.",
+    "Validar los anchos de sensibilidad de medición.",
+    "Recalibrar por país antes de comparativas nacionales.",
+    "Revisión legal/regulatoria formal de claims de general wellness y tratamiento de datos de salud antes de lanzamiento público pagado.",
+    "Validar transporte por sexo/edad/subgrupos demográficos; UK Biobank es mayoritariamente White y no garantiza equidad externa."
+  ],
+  "display_policy": {
+    "morrow_age_reference_range": [
+      40,
+      69
+    ],
+    "raw_output": "Conservar morrow_age numérico para QA/auditoría.",
+    "ui": "Si raw<40 mostrar '<40'; si raw>69 mostrar '>69'; solo mostrar una cifra decimal dentro de 40–69.",
+    "delta_age": "No mostrar delta numérico exacto cuando MorrowAge está fuera del rango de referencia; usar lenguaje de límite.",
+    "reason": "Evitar precisión aparente al invertir el término de edad fuera del rango etario de la cohorte fuente."
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "version": "2.1",
+  "currency_basis": "Stage 1 hypotheses retained until conversion testing; not PPP claims.",
+  "phase_1_validacion": {
+    "price": "US$0; no charge",
+    "form": {
+      "cta": {
+        "es": "Recibe tu informe completo",
+        "en": "Get your full report",
+        "pt": "Receba seu relatório completo"
+      },
+      "fields": [
+        "email",
+        "marketing_consent_separate_optional",
+        "privacy_consent_required"
+      ],
+      "owner_copy": "Admin analytics/event only: pseudonymous session id, locale/market, funnel status, model version, consent flags and delivery status. Do not send raw health inputs, raw score/result or report link to the owner.",
+      "privacy_guardrail": "Email delivery is service fulfillment. Marketing consent must be separate and optional. Retain reports briefly, encrypt at rest/in transit, use expiring unguessable links, and support deletion."
+    },
+    "traction_metrics": [
+      {
+        "metric": "calculator_completion_rate",
+        "activation_threshold": ">=45% over >=500 qualified starts"
+      },
+      {
+        "metric": "email_gate_conversion",
+        "activation_threshold": ">=25% over >=300 completed calculators"
+      },
+      {
+        "metric": "full_report_open_rate",
+        "activation_threshold": ">=45% over >=100 delivered reports"
+      },
+      {
+        "metric": "purchase_intent_or_WTP_USD19",
+        "activation_threshold": ">=8% over >=200 exposed users"
+      }
+    ],
+    "activate_charging_when": "At least 3 of 4 thresholds are met for two consecutive weekly cohorts and no material safety/QA blocker remains."
+  },
+  "phase_2_cobro": {
+    "one_time_prices": [
+      {
+        "country": "US",
+        "price": "US$19",
+        "status": "hipotesis_stage1"
+      },
+      {
+        "country": "UK",
+        "price": "£15",
+        "status": "hipotesis_stage1"
+      },
+      {
+        "country": "Canada",
+        "price": "C$25",
+        "status": "hipotesis_stage1"
+      },
+      {
+        "country": "Australia",
+        "price": "A$29",
+        "status": "hipotesis_stage1"
+      },
+      {
+        "country": "Brazil",
+        "price": "R$49",
+        "status": "hipotesis_stage1"
+      },
+      {
+        "country": "Peru",
+        "price": "S/39",
+        "status": "hipotesis_stage1"
+      }
+    ],
+    "ppp_policy": "Recalculate quarterly from a documented PPP/local willingness-to-pay table before launch in each country; current values are commercial hypotheses from Stage 1, not verified PPP-derived prices.",
+    "bundles": [
+      {
+        "name": "Couple",
+        "price": "US$29",
+        "status": "hypothesis"
+      },
+      {
+        "name": "Retest",
+        "price": "US$9",
+        "status": "hypothesis"
+      }
+    ],
+    "subscription": {
+      "price": "US$39/year",
+      "phase": "V2 only after repeat-use signal",
+      "status": "hypothesis"
+    },
+    "upsells": [
+      "retest",
+      "couple/family bundle",
+      "historical tracking after V2"
+    ],
+    "affiliates": "Do not enable in health/wellness recommendations until conflict-of-interest policy and category safety review exist.",
+    "ppp_source": {
+      "indicator": "PA.NUS.PRVT.PP",
+      "url": "https://data.worldbank.org/indicator/PA.NUS.PRVT.PP",
+      "license": "CC BY 4.0",
+      "status": "verificado"
+    }
+  },
+  "cost_estimate": {
+    "reference_report_price_usd": 19.0,
+    "stripe_domestic_card_fee_usd": 0.851,
+    "transactional_email_usd": 0.0004,
+    "compute_allowance_usd": 0.001,
+    "estimated_incremental_cost_usd": 0.8524,
+    "estimated_gross_margin_before_tax_support_chargebacks_storage": 0.9551,
+    "estimated_gross_margin_percent": 95.51,
+    "sources": [
+      "S11",
+      "S12",
+      "S13"
+    ],
+    "notes": [
+      "US$0.0004/email is allocated average plan cost at 50k emails (US$20/50,000), not marginal cost inside the included quota; overage pricing differs.",
+      "Compute allowance is a conservative modeling assumption, not a published tariff line; actual Workers incremental cost may be inside included quota.",
+      "Excludes tax, FX, support, chargebacks, PDF storage, refunds, affiliate payout, and fixed hosting. Local payment fees vary.",
+      "At US$19 using Stripe US domestic standard pricing, payment processing dominates modeled variable cost."
+    ]
+  }
+}

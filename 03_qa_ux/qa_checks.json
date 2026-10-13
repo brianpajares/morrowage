@@ -1,0 +1,194 @@
+{
+  "version": "3.0",
+  "verdict": "PASS_WITH_FIXES",
+  "counts": {
+    "critical_open": 0,
+    "major_fixed": 4,
+    "major_open_gates": 3,
+    "minor_fixed": 3
+  },
+  "checks": [
+    {
+      "check": "Entrada stage_completed",
+      "resultado": "PASS",
+      "evidencia": "handoff.json inicial stage_completed=2",
+      "severidad": "CRÍTICO",
+      "accion": "ninguna"
+    },
+    {
+      "check": "Inventario esperado",
+      "resultado": "PASS",
+      "evidencia": "brief/model_spec/engine/test_vectors/schema/outputs/monetizacion/model_card/fuentes/Excel presentes",
+      "severidad": "CRÍTICO",
+      "accion": "ninguna"
+    },
+    {
+      "check": "drive_manifest coverage",
+      "resultado": "PASS_WITH_NOTE",
+      "evidencia": "Manifiesto cubre subtree drive, no ZIP completo",
+      "severidad": "MENOR",
+      "accion": "documentado y hashes recalculados"
+    },
+    {
+      "check": "Excel estructura",
+      "resultado": "PASS",
+      "evidencia": "10 hojas; encabezados y rangos críticos revisados",
+      "severidad": "MAYOR",
+      "accion": "ninguna"
+    },
+    {
+      "check": "Excel errores fórmula",
+      "resultado": "PASS",
+      "evidencia": "scan #REF/#DIV0/#VALUE/#NAME/#N/A = 0",
+      "severidad": "CRÍTICO",
+      "accion": "ninguna"
+    },
+    {
+      "check": "Reimplementación independiente",
+      "resultado": "PASS",
+      "evidencia": "qa_engine.py creado desde model_spec+Excel antes de leer engine_reference",
+      "severidad": "CRÍTICO",
+      "accion": "18/18 vectores"
+    },
+    {
+      "check": "QA engine vs referencia",
+      "resultado": "PASS",
+      "evidencia": "18/18 después de fixes v2.1, rel_tol=1e-6",
+      "severidad": "CRÍTICO",
+      "accion": "ninguna"
+    },
+    {
+      "check": "Robustez",
+      "resultado": "PASS",
+      "evidencia": "18/18 casos adicionales",
+      "severidad": "MAYOR",
+      "accion": "casos añadidos a test_vectors.json"
+    },
+    {
+      "check": "Sensibilidad en bordes",
+      "resultado": "FIXED",
+      "evidencia": "TC15 low=base; TC16 high=base; alcohol=0 no extrapola negativo",
+      "severidad": "MAYOR",
+      "accion": "bounds-aware low/high LP"
+    },
+    {
+      "check": "Output MorrowAge fuera 40–69",
+      "resultado": "FIXED",
+      "evidencia": "TC06=<40; TC16=>69 en display; raw conservado",
+      "severidad": "MAYOR",
+      "accion": "morrow_age_status/display + guardrail UI"
+    },
+    {
+      "check": "10 coeficientes Cox",
+      "resultado": "PASS",
+      "evidencia": "Clift et al. 2021 Table 2 / PMC",
+      "severidad": "CRÍTICO",
+      "accion": "sin cambios"
+    },
+    {
+      "check": "Benchmark UKB continuos",
+      "resultado": "PASS",
+      "evidencia": "Clift et al. cohort characteristics",
+      "severidad": "MAYOR",
+      "accion": "sin cambios"
+    },
+    {
+      "check": "Unidad alcohol UK",
+      "resultado": "PASS",
+      "evidencia": "NHS 1 unit=8g",
+      "severidad": "MAYOR",
+      "accion": "licencia corregida a OGL v3.0 con condiciones"
+    },
+    {
+      "check": "US standard drink",
+      "resultado": "PASS",
+      "evidencia": "NIAAA 14g; 14/8=1.75",
+      "severidad": "MAYOR",
+      "accion": "uso factual"
+    },
+    {
+      "check": "NCHS linked mortality",
+      "resultado": "FIXED",
+      "evidencia": "public-use 2019 LMF limitado; algunas variables sintéticas; restricted-use vía RDC",
+      "severidad": "MAYOR",
+      "accion": "fuente y notas corregidas"
+    },
+    {
+      "check": "Stripe pricing",
+      "resultado": "PASS",
+      "evidencia": "2.9% + US$0.30 domestic card",
+      "severidad": "MENOR",
+      "accion": "sin cambios"
+    },
+    {
+      "check": "Resend pricing",
+      "resultado": "FIXED",
+      "evidencia": "US$20/50k; $0.90/1k overage",
+      "severidad": "MENOR",
+      "accion": "0.0004 renombrado coste asignado medio"
+    },
+    {
+      "check": "Cloudflare Workers pricing",
+      "resultado": "PASS",
+      "evidencia": "Paid desde $5; quotas documentadas",
+      "severidad": "MENOR",
+      "accion": "sin cambios"
+    },
+    {
+      "check": "World Bank license",
+      "resultado": "PASS_WITH_CONDITIONS",
+      "evidencia": "CC BY 4.0 default para datasets propios salvo etiqueta",
+      "severidad": "MENOR",
+      "accion": "mantener revisión de metadata"
+    },
+    {
+      "check": "S04 implementation rights",
+      "resultado": "NO_VERIFICADO",
+      "evidencia": "Paper verificable; derechos de calculadora/implementación no demostrados",
+      "severidad": "MENOR",
+      "accion": "no reutilizar implementación; solo benchmark bibliográfico"
+    },
+    {
+      "check": "Brief vs model_spec",
+      "resultado": "FIXED",
+      "evidencia": "eliminados claims de riesgo 10y/IC/35–69; inputs alineados",
+      "severidad": "MAYOR",
+      "accion": "brief.json canónico actualizado"
+    },
+    {
+      "check": "Outputs vs monetización",
+      "resultado": "PASS",
+      "evidencia": "free=display+1 driver; paid=contexto; absolute risk/country percentile bloqueados",
+      "severidad": "MAYOR",
+      "accion": "locks reforzados"
+    },
+    {
+      "check": "Privacidad admin analytics",
+      "resultado": "FIXED",
+      "evidencia": "owner_copy ya no contiene health inputs/results/report link",
+      "severidad": "MAYOR",
+      "accion": "telemetría mínima"
+    },
+    {
+      "check": "Regulatory wellness claims",
+      "resultado": "OPEN_GATE",
+      "evidencia": "FDA General Wellness Jan 2026; mortality intended-use requires counsel review",
+      "severidad": "MAYOR",
+      "accion": "revisión legal antes de go-live pagado"
+    },
+    {
+      "check": "FTC HBNR health data",
+      "resultado": "OPEN_GATE",
+      "evidencia": "regla 2024 aclara cobertura de health apps",
+      "severidad": "MAYOR",
+      "accion": "minimización, breach plan, counsel"
+    },
+    {
+      "check": "Bias/transportability",
+      "resultado": "OPEN_GATE",
+      "evidencia": "UKB predominantly White; no local validation",
+      "severidad": "MAYOR",
+      "accion": "validación por sexo/edad/demografía/país antes de claims locales"
+    }
+  ]
+}

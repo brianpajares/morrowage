@@ -1,0 +1,11 @@
+variable,valor,unidad,tipo,fuente_url,fecha,estado,nota
+sleep_hours,7.16,h/noche,media UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+self_rated_health_excellent,16.39,%,proporción UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+self_rated_health_good,58.3,%,proporción UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+self_rated_health_fair,20.97,%,proporción UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+self_rated_health_poor,4.34,%,proporción UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+reaction_time_ms,558.03,ms,media UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+waist_to_height_ratio,0.54,ratio,media UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+alcohol_units_week,14.34,UK units/week,media UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+resting_hr_bpm,69.84,bpm,media UKB,https://mhealth.jmir.org/2021/2/e25655,2021-02-16,verificado,
+cigarettes_per_day,0,cig/día,benchmark de diseño,definición MorrowAge v2,2026-10-06,verificado,Never-smoker benchmark; no media UKB
