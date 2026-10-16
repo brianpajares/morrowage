@@ -74,6 +74,15 @@ export const siteEn: Shape<typeof siteEs> = {
     ],
     fullTitle: 'Full report',
     fullBadge: 'Free in this phase',
+    fullBadgePaid: 'One-time payment {price}',
+    fullItemsPaid: [
+      'Your profile versus the benchmark and measurement sensitivity',
+      'All associations ranked by weight',
+      'Educational scenarios you can explore',
+      'Measurement guide, follow-up log and questions for your professional',
+      'Glossary, methodology and sources · {pages}-page PDF',
+    ],
+    faqPricePaid: 'Your result and the preview are free. The full {pages}-page report is a one-time payment of {price}, with no subscription, and you see what it contains before paying.',
     fullItems: [
       'Measurement sensitivity (not a confidence interval)',
       'Every association, ranked by weight',

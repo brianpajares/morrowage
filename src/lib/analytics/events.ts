@@ -17,7 +17,7 @@ const ALLOWED_PROPS = new Map<string, readonly string[]>(spec.events.map((e) => 
 const COMMON = spec.common_properties as readonly string[];
 
 export const STEP_IDS = ['age', 'sleep', 'srh', 'cigs', 'reaction', 'wthr', 'alcohol', 'rhr'] as const;
-export const SECTION_IDS = ['summary', 'meaning', 'sensitivity', 'drivers', 'scenarios', 'plan', 'method', 'sources'] as const;
+export const SECTION_IDS = ['summary', 'meaning', 'profile', 'sensitivity', 'drivers', 'scenarios', 'guide', 'plan', 'followup', 'questions', 'glossary', 'method', 'sources'] as const;
 
 const BUCKETS = ['lt_5s', '5_15s', '15_30s', '30_60s', '60_90s', '90_180s', 'gte_180s'] as const;
 export type TimeBucket = (typeof BUCKETS)[number];
@@ -59,15 +59,15 @@ const PROP_VALIDATORS: Record<string, (v: unknown) => boolean> = {
   unit_system: oneOf(['metric', 'imperial']),
   unit_mode: oneOf(['us_drinks', 'uk_units', 'grams']),
   morrow_age_status: oneOf(['WITHIN_REFERENCE_RANGE', 'BELOW_REFERENCE_RANGE', 'ABOVE_REFERENCE_RANGE']),
-  phase: oneOf(['validation', 'stripe']),
+  phase: oneOf(['validation', 'stripe', 'paypal']),
   origin_screen: pattern(/^[a-z][a-z_]{0,23}$/),
   source_id: pattern(/^S\d{2}$/),
   marketing_opt_in: (v) => typeof v === 'boolean',
-  provider: oneOf(['resend', 'stripe']),
+  provider: oneOf(['resend', 'stripe', 'paypal']),
   price_id: pattern(/^price_[A-Za-z0-9]{4,64}$/),
   currency: pattern(/^[A-Z]{3}$/),
   gross_amount_minor: (v) => Number.isInteger(v) && (v as number) >= 0 && (v as number) < 10_000_000,
-  access_tier: oneOf(['validation_full', 'paid_full']),
+  access_tier: oneOf(['validation_full', 'paid_full', 'preview_locked']),
   section_id: oneOf(SECTION_IDS),
 };
 

@@ -1,7 +1,10 @@
 /**
- * POST /api/leads — modo validation (FR-08, FR-09, AT-09, AT-10).
+ * POST /api/leads — modos validation y paypal (FR-08, FR-09, AT-09, AT-10).
  * Crea el lead con consentimiento de servicio, emite el informe (token hasheado) y programa la
- * entrega (PDF + email usuario + email dueño) fuera de la petición para mantener p95 < 2 s.
+ * entrega fuera de la petición para mantener p95 < 2 s:
+ *  - validation: informe completo gratis (PDF + email usuario + email dueño);
+ *  - paypal (pagos activos): SOLO vista previa difuminada al usuario + PDF completo al dueño; la
+ *    respuesta lleva únicamente el enlace de desbloqueo (el informe completo no viaja al navegador).
  * El marketing y la lista de espera son opt-ins separados y opcionales.
  */
 import { z } from 'zod';
@@ -13,7 +16,7 @@ import { POLICIES } from '@/lib/security/ratelimit';
 import { trackServer } from '@/server/analytics';
 import { ApiError, enforceRateLimit } from '@/server/http';
 import { deliverReport } from './delivery';
-import { issueReport, reportUrl, rotateReportToken } from './report';
+import { issueReport, reportUrl, rotateReportToken, unlockUrl } from './report';
 import { getStore } from '@/server/store';
 
 const bodySchema = z.strictObject({
@@ -25,11 +28,10 @@ const bodySchema = z.strictObject({
   subscriptionWaitlistOptIn: z.boolean().default(false),
 });
 
-export interface CreateLeadResult {
-  leadId: string;
-  status: 'accepted';
-  reportUrl: string;
-}
+export type CreateLeadResult =
+  | { leadId: string; status: 'accepted'; mode: 'report'; reportUrl: string }
+  /** Pagos activos: solo el enlace de desbloqueo (sin `report`). */
+  | { leadId: string; status: 'accepted'; mode: 'paywall'; unlockUrl: string };
 
 export async function createLeadService(
   opts: { body: unknown; sessionId?: string; psid?: string; deviceClass?: 'mobile' | 'tablet' | 'desktop' },
@@ -76,11 +78,19 @@ export async function createLeadService(
   }
 
   // Idempotente: si el informe ya existe se rota el token (el enlace anterior deja de valer).
+  const payMode = env.paypalActive;
   const existing = await store.getReportByLead(lead.id);
-  const issued = existing ? await rotateReportToken(store, existing, now) : await issueReport(store, calc, lead.id, 'validation_full', now);
+  const issued = existing
+    ? await rotateReportToken(store, existing, now)
+    : await issueReport(store, calc, lead.id, payMode ? 'preview_locked' : 'validation_full', now);
 
+  // Re-envíos (mismo lead, nuevo token): sin repetir el aviso al dueño y con idempotency-key propia.
+  const mode = existing && (payMode || existing.access_tier === 'paid_full') ? 'resend' : 'initial';
   const leadId = lead.id;
-  deps.schedule(() => deliverReport(store, { leadId, token: issued.token, mode: 'initial', now }));
+  deps.schedule(() => deliverReport(store, { leadId, token: issued.token, mode, now }));
 
-  return { leadId, status: 'accepted', reportUrl: reportUrl(lead.locale, issued.token) };
+  if (issued.report.access_tier === 'preview_locked') {
+    return { leadId, status: 'accepted', mode: 'paywall', unlockUrl: unlockUrl(lead.locale, issued.token) };
+  }
+  return { leadId, status: 'accepted', mode: 'report', reportUrl: reportUrl(lead.locale, issued.token) };
 }

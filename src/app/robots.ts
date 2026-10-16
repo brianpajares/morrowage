@@ -3,7 +3,7 @@ import { getEnv } from '@/lib/env';
 
 export default function robots(): MetadataRoute.Robots {
   const base = getEnv().appUrl;
-  const noindex = ['calculate', 'processing', 'preview', 'report-request', 'checkout', 'success', 'report', 'privacy/delete-request'];
+  const noindex = ['calculate', 'processing', 'preview', 'report-request', 'checkout', 'success', 'report', 'unlock', 'privacy/delete-request'];
   return {
     rules: [
       {

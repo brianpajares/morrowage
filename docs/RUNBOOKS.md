@@ -34,3 +34,12 @@ Regla general: nunca copiar datos de salud, emails ni tokens a tickets, chats o 
 
 ## 9. Sentry
 - Los eventos pasan por `scrubSentryEvent`: sin cuerpos, cookies, cabeceras, query, emails ni tokens. Si aparece un dato sensible, tratar como incidente de privacidad: purgar el evento en Sentry y añadir la regla al scrubber con su test.
+
+## 10. Pagos con PayPal (modo `paypal`)
+
+- **Diagnóstico primero:** abre `https://<app>/api/health` y revisa `payments` (`enabled`, `env`, `live_blocked`, `webhook_configured`) e `integrations` (`email`, `database`, `resend_api_key`, `deployment`, `build.branch/commit`). Si `payments.enabled=false` con todo lo demás en `true`: falta `MONETIZATION_MODE=paypal`, alguna variable `PAYPAL_*` o, en LIVE, `PAYMENTS_LIVE_APPROVED=true`. Variables en **Production y Preview** y **Redeploy** tras cada cambio.
+- **Cliente pagó y no recibió el PDF:** `/admin` → «Entregas pendientes». El cron diario (`/api/cron/cleanup`, campo `ordersRetried`) lo reintenta; para forzarlo, ejecútalo con `Authorization: Bearer $CRON_SECRET`. El aviso al dueño dice `ENTREGA PENDIENTE` hasta que se entrega. Mira Resend → Logs para el motivo exacto.
+- **Webhook con 401 en PayPal Developer → Event delivery:** Deployment Protection de Vercel (Preview) o `PAYPAL_WEBHOOK_ID` de otro entorno (el de Sandbox y el de Live son distintos). Apunta el webhook al dominio de producción.
+- **Reembolso:** hazlo desde el panel de PayPal; el webhook `PAYMENT.CAPTURE.REFUNDED` marca el pedido `refunded` y te avisa por correo.
+- **Alertas «PAGO NO ENTREGADO» / «PAGO DUPLICADO»:** nunca se entrega un pago con importe, moneda, merchant o `custom_id` distintos; revisa el pedido en PayPal y reembolsa si corresponde.
+- **Rollback de cobros:** pon `MONETIZATION_MODE=validation` (o borra `PAYPAL_CLIENT_ID`) y haz Redeploy: vuelve el informe gratis y los enlaces de desbloqueo muestran un aviso neutro.

@@ -58,7 +58,7 @@ export const legalEn: Shape<typeof legalEs> = {
           'Hosting and database: Vercel and Supabase. Email delivery: Resend.',
           'Abuse protection: Cloudflare Turnstile and Upstash (request limiting).',
           'Journey analytics, without health data: PostHog. Error monitoring with redacted data: Sentry.',
-          'Product configuration files, without personal data: Google Drive. Payments, only if enabled: Stripe.',
+          'Product configuration files, without personal data: Google Drive. Payments (when active): PayPal, which processes the charge with PayPal or card; Stripe, only if enabled.',
           'These providers may process data in the United States and other countries; we apply the relevant contractual safeguards. We do not sell your data.',
         ],
       },
@@ -141,7 +141,9 @@ export const legalEn: Shape<typeof legalEs> = {
       {
         title: 'Price',
         body: [
-          'During the validation phase the report is free. If a price is enabled, it will be shown before you provide any payment details, together with the applicable payment and refund terms.',
+          'Your result and the report preview are free. The full report is a one-time digital product, with no subscription; its price is shown before you pay.',
+          'Payment is processed by PayPal (with PayPal or card). MorrowAge does not store your card details. The full report is delivered immediately by email as a PDF.',
+          'By purchasing you accept immediate delivery of the digital content and acknowledge that, once delivered, you waive the right of withdrawal. If you do not receive the report or are charged incorrectly, write to us and we will resolve it, including a refund where applicable.',
         ],
       },
       {

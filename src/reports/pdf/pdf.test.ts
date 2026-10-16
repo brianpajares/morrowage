@@ -42,10 +42,10 @@ async function pdfFor(vectorId: string, locale: Locale) {
 }
 
 describe('AT-12 · PDF del informe', () => {
-  it('es un PDF válido de 8 páginas con los bloques exigidos (ES)', async () => {
+  it('es un PDF válido de 13 páginas con los bloques exigidos (ES)', async () => {
     const { pdf, text, totalPages } = await pdfFor('TC01', 'es');
     expect(Buffer.from(pdf.bytes.slice(0, 5)).toString()).toBe('%PDF-');
-    expect(totalPages).toBe(8);
+    expect(totalPages).toBe(13);
     expect(pdf.sha256).toMatch(/^[0-9a-f]{64}$/);
 
     expect(text).toContain('MA-26-8F3C2A'); // Verification ID
@@ -64,7 +64,7 @@ describe('AT-12 · PDF del informe', () => {
   it('se genera en ES, EN y PT con la misma cifra de presentación', async () => {
     for (const locale of LOCALES) {
       const { text, totalPages } = await pdfFor('TC01', locale);
-      expect(totalPages, locale).toBe(8);
+      expect(totalPages, locale).toBe(13);
       expect(text, locale).toContain('47.7');
       expect(text, locale).toContain('MA-26-8F3C2A');
     }

@@ -95,6 +95,11 @@ export async function funnel(windowDays = 14): Promise<FunnelSummary> {
   return summarizeFunnel(counters, leads, windowDays);
 }
 
+/** Resumen de ventas (PayPal): solo importes y contadores; sin emails ni datos de salud. */
+export async function sales() {
+  return getStore().salesSummary();
+}
+
 export async function resendReport(admin: AdminIdentity, reportId: string, deps: { schedule: (t: () => Promise<unknown>) => void }) {
   const store = getStore();
   const report = await store.getReport(reportId);

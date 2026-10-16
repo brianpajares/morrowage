@@ -6,6 +6,7 @@
 import { log } from '@/lib/log';
 import { getStore } from '@/server/store';
 import { deliverReport } from './delivery';
+import { fulfillPaidOrder } from './fulfillment';
 import { rotateReportToken } from './report';
 
 export interface CleanupResult {
@@ -13,6 +14,9 @@ export interface CleanupResult {
   scrubbed: number;
   retried: number;
   retryFailed: number;
+  /** Pedidos PayPal pagados cuya entrega se reintentó / siguen sin entregarse. */
+  ordersRetried: number;
+  ordersStillPending: number;
 }
 
 export async function cleanupJob(now: Date = new Date()): Promise<CleanupResult> {
@@ -40,6 +44,22 @@ export async function cleanupJob(now: Date = new Date()): Promise<CleanupResult>
       retryFailed++;
     }
   }
-  log.info('cleanup_done', { purged: purge.calculations, scrubbed: purge.scrubbed, retried, retryFailed });
-  return { purgedCalculations: purge.calculations, scrubbed: purge.scrubbed, retried, retryFailed };
+  // Entregas de pedidos pagados que no terminaron (correo caído, proceso interrumpido): reintento
+  // seguro — `fulfillPaidOrder` reclama la entrega en exclusiva y no duplica correos.
+  let ordersRetried = 0;
+  let ordersStillPending = 0;
+  const orders = await store.listOrdersForFulfillmentRetry({ olderThan: new Date(now.getTime() - 10 * 60_000), limit: 20 });
+  for (const order of orders) {
+    try {
+      const out = await fulfillPaidOrder(store, order.id, { now });
+      if (!out.claimed) continue;
+      if (out.delivered) ordersRetried++;
+      else ordersStillPending++;
+    } catch {
+      ordersStillPending++;
+    }
+  }
+
+  log.info('cleanup_done', { purged: purge.calculations, scrubbed: purge.scrubbed, retried, retryFailed, ordersRetried, ordersStillPending });
+  return { purgedCalculations: purge.calculations, scrubbed: purge.scrubbed, retried, retryFailed, ordersRetried, ordersStillPending };
 }

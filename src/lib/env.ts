@@ -6,6 +6,7 @@
  */
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
+import { extractEmail, normalizeFrom } from '@/lib/email-address';
 
 const PLACEHOLDER = /REPLACE_ME|YOUR_[A-Z_]+|your-project|example\.invalid/i;
 
@@ -30,7 +31,7 @@ const schema = z.object({
   APP_VERSION: optional,
   MODEL_VERSION: optional,
   MONETIZATION_MODE: z
-    .enum(['validation', 'stripe'])
+    .enum(['validation', 'stripe', 'paypal'])
     .optional()
     .or(z.literal('').transform(() => undefined)),
   STRIPE_ENABLED: boolFlag,
@@ -59,11 +60,31 @@ const schema = z.object({
   STRIPE_WEBHOOK_SECRET: optional,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: optional,
   STRIPE_PRICE_REPORT_USD: optional,
+  // PayPal Checkout (Orders v2). Ver docs/PAYPAL_SETUP.md y DECISIONS.md (2026-10-16).
+  PAYPAL_ENV: z
+    .enum(['sandbox', 'live'])
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  PAYPAL_CLIENT_ID: optional,
+  PAYPAL_CLIENT_SECRET: optional,
+  PAYPAL_WEBHOOK_ID: optional,
+  PAYPAL_MERCHANT_ID: optional,
+  PAYMENTS_LIVE_APPROVED: boolFlag,
+  REPORT_PRICE_USD: optional,
   // Añadidas por la implementación (ver DECISIONS.md, 2026-10-07):
   SESSION_PEPPER: optional,
   CRON_SECRET: optional,
   NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL: optional,
 });
+
+/** `19`, `19.5` o `19.00` → centavos. Rechaza valores no numéricos o fuera de rango. */
+function priceMinor(raw: string | undefined, fallback: number): number {
+  if (raw === undefined) return fallback;
+  if (!/^\d{1,4}(\.\d{1,2})?$/.test(raw)) throw new Error('Variable de entorno inválida: REPORT_PRICE_USD');
+  const minor = Math.round(Number(raw) * 100);
+  if (minor < 100) throw new Error('Variable de entorno inválida: REPORT_PRICE_USD');
+  return minor;
+}
 
 function positiveInt(raw: string | undefined, fallback: number, name: string): number {
   if (raw === undefined) return fallback;
@@ -81,6 +102,25 @@ export interface Capabilities {
   posthog: boolean;
   sentry: boolean;
   stripe: boolean;
+  paypal: boolean;
+}
+
+export type PaypalEnvName = 'sandbox' | 'live';
+
+export interface PaypalConfig {
+  env: PaypalEnvName;
+  clientId?: string;
+  clientSecret?: string;
+  webhookId?: string;
+  merchantId?: string;
+  /** Segundo interruptor de LIVE (PAYMENTS_LIVE_APPROVED=true). */
+  liveApproved: boolean;
+  /** Credenciales completas (client id, secret y webhook id). */
+  configured: boolean;
+  /** Configurado y permitido: Sandbox siempre; LIVE solo con los dos interruptores. */
+  usable: boolean;
+  /** Credenciales LIVE presentes pero sin aprobación: no se cobra. */
+  liveBlocked: boolean;
 }
 
 export interface AppEnv {
@@ -90,9 +130,18 @@ export interface AppEnv {
   appUrl: string;
   appVersion: string;
   modelVersion: string;
-  monetizationMode: 'validation' | 'stripe';
+  monetizationMode: 'validation' | 'stripe' | 'paypal';
   /** Stripe operativo: MONETIZATION_MODE=stripe && STRIPE_ENABLED=true. */
   stripeActive: boolean;
+  /**
+   * PayPal operativo: MONETIZATION_MODE=paypal + credenciales completas + (Sandbox | LIVE aprobado)
+   * + almacenamiento y email disponibles. Si falta algo, la app NO se rompe: vuelve al flujo
+   * `validation` (informe completo gratis) y /api/health lo refleja.
+   */
+  paypalActive: boolean;
+  paypal: PaypalConfig;
+  /** Precio del informe (solo servidor). `amountMinor` en centavos de USD. */
+  price: { amountMinor: number; currency: 'USD' };
   reportTokenTtlHours: number;
   reportRetentionDays: number;
   driveCacheTtlSeconds: number;
@@ -153,6 +202,26 @@ export function getEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     priceId: e.STRIPE_PRICE_REPORT_USD,
   };
 
+  const paypalEnv: PaypalEnvName = e.PAYPAL_ENV ?? 'sandbox';
+  const paypalConfigured = Boolean(e.PAYPAL_CLIENT_ID && e.PAYPAL_CLIENT_SECRET && e.PAYPAL_WEBHOOK_ID);
+  const paypal: PaypalConfig = {
+    env: paypalEnv,
+    clientId: e.PAYPAL_CLIENT_ID,
+    clientSecret: e.PAYPAL_CLIENT_SECRET,
+    webhookId: e.PAYPAL_WEBHOOK_ID,
+    merchantId: e.PAYPAL_MERCHANT_ID,
+    liveApproved: e.PAYMENTS_LIVE_APPROVED === true,
+    configured: paypalConfigured,
+    usable: paypalConfigured && (paypalEnv === 'sandbox' || e.PAYMENTS_LIVE_APPROVED === true),
+    liveBlocked: paypalConfigured && paypalEnv === 'live' && e.PAYMENTS_LIVE_APPROVED !== true,
+  };
+  const emailFrom = normalizeFrom(e.EMAIL_FROM);
+  const ownerEmail = extractEmail(e.OWNER_EMAIL);
+  const emailReady = Boolean(e.RESEND_API_KEY && emailFrom);
+  const storeReady = Boolean(supabaseUrl && serviceKey) || appEnv !== 'production';
+  const paypalActive =
+    monetizationMode === 'paypal' && paypal.usable && storeReady && (emailReady || appEnv === 'test') && sessionPepper !== '';
+
   return {
     appEnv,
     isProduction,
@@ -161,6 +230,9 @@ export function getEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     modelVersion: e.MODEL_VERSION ?? '2.1',
     monetizationMode,
     stripeActive,
+    paypalActive,
+    paypal,
+    price: { amountMinor: priceMinor(e.REPORT_PRICE_USD, 1900), currency: 'USD' },
     reportTokenTtlHours: positiveInt(e.REPORT_TOKEN_TTL_HOURS, 168, 'REPORT_TOKEN_TTL_HOURS'),
     reportRetentionDays: positiveInt(e.REPORT_RETENTION_DAYS, 30, 'REPORT_RETENTION_DAYS'),
     driveCacheTtlSeconds: positiveInt(e.DRIVE_CACHE_TTL_SECONDS, 86_400, 'DRIVE_CACHE_TTL_SECONDS'),
@@ -169,8 +241,8 @@ export function getEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     supabaseServiceRoleKey: serviceKey,
     google,
     resendApiKey: e.RESEND_API_KEY,
-    emailFrom: e.EMAIL_FROM,
-    ownerEmail: e.OWNER_EMAIL,
+    emailFrom,
+    ownerEmail,
     posthog: { key: e.NEXT_PUBLIC_POSTHOG_KEY, host: e.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com' },
     sentryDsn: e.SENTRY_DSN ?? e.NEXT_PUBLIC_SENTRY_DSN,
     turnstile: { siteKey: e.NEXT_PUBLIC_TURNSTILE_SITE_KEY, secretKey: e.TURNSTILE_SECRET_KEY },
@@ -182,12 +254,13 @@ export function getEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     capabilities: {
       supabase: Boolean(supabaseUrl && serviceKey),
       drive: Boolean(google.email && google.privateKey && google.folderId),
-      email: Boolean(e.RESEND_API_KEY && e.EMAIL_FROM),
+      email: emailReady,
       turnstile: Boolean(e.TURNSTILE_SECRET_KEY && e.NEXT_PUBLIC_TURNSTILE_SITE_KEY),
       rateLimitRedis: Boolean(e.UPSTASH_REDIS_REST_URL && e.UPSTASH_REDIS_REST_TOKEN),
       posthog: Boolean(e.NEXT_PUBLIC_POSTHOG_KEY),
       sentry: Boolean(e.SENTRY_DSN ?? e.NEXT_PUBLIC_SENTRY_DSN),
       stripe: Boolean(stripe.secretKey && stripe.webhookSecret && stripe.priceId),
+      paypal: paypalConfigured,
     },
   };
 }

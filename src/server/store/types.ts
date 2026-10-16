@@ -5,7 +5,8 @@ import type { Locale } from '@/lib/locales';
 export type LeadStatus = 'requested' | 'generating' | 'delivered' | 'failed' | 'paid' | 'deleted';
 export type OrderStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 export type DeletionStatus = 'received' | 'verifying' | 'completed' | 'rejected_legal_hold';
-export type AccessTier = 'validation_full' | 'paid_full';
+/** `preview_locked`: modo de pago activo y aún sin pagar; solo existe la vista previa difuminada. */
+export type AccessTier = 'validation_full' | 'paid_full' | 'preview_locked';
 
 export interface CalculationRow {
   id: string;
@@ -57,20 +58,45 @@ export interface ReportRow {
 }
 export type ReportInsert = Omit<ReportRow, 'id' | 'generated_at' | 'delivered_at' | 'last_sent_at' | 'pdf_checksum_sha256'>;
 
+export type OrderProvider = 'stripe' | 'paypal';
+export type FulfillmentStatus = 'not_started' | 'claimed' | 'delivered' | 'failed';
+
 export interface OrderRow {
   id: string;
   lead_id: string | null;
   calculation_id: string;
+  provider: OrderProvider;
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
+  paypal_order_id: string | null;
+  paypal_capture_id: string | null;
+  /** true si el cobro se hizo en PayPal Sandbox (el aviso al dueño lo marca). */
+  sandbox: boolean;
   amount_minor: number;
   currency: string;
   status: OrderStatus;
+  fulfillment_status: FulfillmentStatus;
+  fulfillment_claimed_at: string | null;
+  fulfillment_attempts: number;
+  /** Clase de error corta y sin PII (p. ej. `delivery_failed`, `dispute_created`). */
+  last_error_class: string | null;
+  /** Cuándo aceptó términos y la renuncia al desistimiento (producto digital). */
+  terms_accepted_at: string | null;
   created_at: string;
   paid_at: string | null;
   updated_at: string;
 }
-export type OrderInsert = Pick<OrderRow, 'calculation_id' | 'amount_minor' | 'currency'> & Partial<Pick<OrderRow, 'lead_id' | 'stripe_checkout_session_id' | 'status'>>;
+export type OrderInsert = Pick<OrderRow, 'calculation_id' | 'amount_minor' | 'currency'> &
+  Partial<Pick<OrderRow, 'lead_id' | 'stripe_checkout_session_id' | 'status' | 'provider' | 'paypal_order_id' | 'sandbox' | 'terms_accepted_at'>>;
+
+export type MarkPaidResult = 'paid' | 'already_paid' | 'mismatch';
+
+export interface SalesSummary {
+  paidOrders: number;
+  paidAmountMinor: number;
+  sandboxOrders: number;
+  pendingFulfillment: number;
+}
 
 export interface DeletionRequestRow {
   id: string;
@@ -149,7 +175,7 @@ export interface Store {
   getReportByLead(leadId: string): Promise<ReportRow | null>;
   updateReport(
     id: string,
-    patch: Partial<Pick<ReportRow, 'token_hash' | 'token_expires_at' | 'delivered_at' | 'last_sent_at' | 'pdf_checksum_sha256'>>,
+    patch: Partial<Pick<ReportRow, 'token_hash' | 'token_expires_at' | 'delivered_at' | 'last_sent_at' | 'pdf_checksum_sha256' | 'access_tier'>>,
   ): Promise<ReportRow>;
 
   listLeadsSafe(opts: { status?: LeadStatus; cursor?: string | null; limit: number }): Promise<{
@@ -181,8 +207,21 @@ export interface Store {
   getOrderByCheckoutSession(sessionId: string): Promise<OrderRow | null>;
   updateOrder(
     id: string,
-    patch: Partial<Pick<OrderRow, 'status' | 'stripe_checkout_session_id' | 'stripe_payment_intent_id' | 'paid_at' | 'lead_id'>>,
+    patch: Partial<
+      Pick<OrderRow, 'status' | 'stripe_checkout_session_id' | 'stripe_payment_intent_id' | 'paid_at' | 'lead_id' | 'paypal_order_id' | 'last_error_class' | 'fulfillment_status'>
+    >,
   ): Promise<OrderRow>;
+
+  // --- PayPal (transiciones atómicas: ver supabase/migrations/20261016000000_paypal_payments.sql) ---
+  getOrderByPaypalOrderId(paypalOrderId: string): Promise<OrderRow | null>;
+  listOrdersByCalculation(calculationId: string): Promise<OrderRow[]>;
+  /** pending → paid solo si importe/moneda/pedido coinciden. Idempotente por `captureId`. */
+  markOrderPaid(input: { orderId: string; paypalOrderId: string; captureId: string; amountMinor: number; currency: string; sandbox: boolean }): Promise<MarkPaidResult>;
+  /** true si ESTE proceso obtuvo la entrega en exclusiva (evita correos duplicados). */
+  claimOrderFulfillment(orderId: string, staleMinutes?: number): Promise<boolean>;
+  /** Pedidos pagados cuya entrega no terminó (reintento por cron). */
+  listOrdersForFulfillmentRetry(opts: { olderThan: Date; limit: number }): Promise<OrderRow[]>;
+  salesSummary(): Promise<SalesSummary>;
 
   /** Idempotencia de webhooks: 'duplicate' si el event_id ya existe. */
   claimWebhookEvent(eventId: string, eventType: string, payloadSha256: string): Promise<'claimed' | 'duplicate'>;

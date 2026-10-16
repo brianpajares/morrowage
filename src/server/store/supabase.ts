@@ -12,8 +12,10 @@ import {
   type LeadInsert,
   type LeadRow,
   type LeadStatus,
+  type MarkPaidResult,
   type OrderInsert,
   type OrderRow,
+  type SalesSummary,
   type PurgeResult,
   type ReportInsert,
   type ReportRow,
@@ -261,6 +263,58 @@ export class SupabaseStore implements Store {
     const { data, error } = await this.db.from('orders').update(patch).eq('id', id).select().single();
     if (error) fail(error, 'update_order');
     return data as OrderRow;
+  }
+
+  async getOrderByPaypalOrderId(paypalOrderId: string) {
+    const { data, error } = await this.db.from('orders').select('*').eq('paypal_order_id', paypalOrderId).maybeSingle();
+    if (error) fail(error, 'get_order_by_paypal');
+    return (data as OrderRow | null) ?? null;
+  }
+  async listOrdersByCalculation(calculationId: string) {
+    const { data, error } = await this.db.from('orders').select('*').eq('calculation_id', calculationId);
+    if (error) fail(error, 'list_orders_by_calc');
+    return (data ?? []) as OrderRow[];
+  }
+  async markOrderPaid(i: { orderId: string; paypalOrderId: string; captureId: string; amountMinor: number; currency: string; sandbox: boolean }): Promise<MarkPaidResult> {
+    const { data, error } = await this.db.rpc('ma_order_mark_paid', {
+      p_order: i.orderId,
+      p_paypal_order: i.paypalOrderId,
+      p_capture: i.captureId,
+      p_amount: i.amountMinor,
+      p_currency: i.currency,
+      p_sandbox: i.sandbox,
+    });
+    if (error) fail(error, 'mark_order_paid');
+    return data === 'paid' || data === 'already_paid' ? data : 'mismatch';
+  }
+  async claimOrderFulfillment(orderId: string, staleMinutes = 10) {
+    const { data, error } = await this.db.rpc('ma_order_claim_fulfillment', { p_order: orderId, p_stale_minutes: staleMinutes });
+    if (error) fail(error, 'claim_fulfillment');
+    return data === true;
+  }
+  async listOrdersForFulfillmentRetry(opts: { olderThan: Date; limit: number }) {
+    const { data, error } = await this.db
+      .from('orders')
+      .select('*')
+      .eq('provider', 'paypal')
+      .eq('status', 'paid')
+      .neq('fulfillment_status', 'delivered')
+      .lt('updated_at', opts.olderThan.toISOString())
+      .order('paid_at', { ascending: true })
+      .limit(opts.limit);
+    if (error) fail(error, 'orders_for_retry');
+    return (data ?? []) as OrderRow[];
+  }
+  async salesSummary(): Promise<SalesSummary> {
+    const { data, error } = await this.db.from('orders').select('amount_minor,sandbox,fulfillment_status').eq('provider', 'paypal').eq('status', 'paid');
+    if (error) fail(error, 'sales_summary');
+    const rows = (data ?? []) as Array<Pick<OrderRow, 'amount_minor' | 'sandbox' | 'fulfillment_status'>>;
+    return {
+      paidOrders: rows.length,
+      paidAmountMinor: rows.reduce((n, r) => n + r.amount_minor, 0),
+      sandboxOrders: rows.filter((r) => r.sandbox).length,
+      pendingFulfillment: rows.filter((r) => r.fulfillment_status !== 'delivered').length,
+    };
   }
 
   async claimWebhookEvent(eventId: string, eventType: string, payloadSha256: string) {

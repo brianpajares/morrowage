@@ -28,6 +28,7 @@ export default async function FlowLayout({ children, params }: { children: React
     'preview',
     'email_gate',
     'success',
+    'paywall',
     'checkout',
     'trust',
   ]);

@@ -21,6 +21,7 @@ export const GET = handler(async (req: Request, { params }: { params: Promise<{ 
   const found = await lookupReport(getStore(), token);
   if (found.status === 'not_found') throw new ApiError(404, 'report_not_found');
   if (found.status === 'expired') throw new ApiError(410, 'token_expired');
+  if (found.status === 'locked') throw new ApiError(402, 'payment_required');
 
   const requested = new URL(req.url).searchParams.get('locale');
   const locale = isLocale(requested) ? requested : found.calc.locale;

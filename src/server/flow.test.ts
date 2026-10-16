@@ -348,7 +348,7 @@ describe('Informe por token (AT-11, AT-12, AT-27)', () => {
     expect((await pdfGet(getReq(`/api/report/${token}/pdf`), params(token))).status).toBe(410);
   });
 
-  it('AT-12 + AT-08: el PDF descargable tiene 8 páginas y censura el raw fuera de rango', async () => {
+  it('AT-12 + AT-08: el PDF descargable tiene 13 páginas y censura el raw fuera de rango', async () => {
     const { token } = await issued('es', TC03);
     const res = await pdfGet(getReq(`/api/report/${token}/pdf`), params(token));
     expect(res.status).toBe(200);
@@ -356,7 +356,7 @@ describe('Informe por token (AT-11, AT-12, AT-27)', () => {
     expect(res.headers.get('content-disposition')).toMatch(/MorrowAge-MA-\d{2}-[0-9A-F]{6}\.pdf/);
     const doc = await getDocumentProxy(new Uint8Array(await res.arrayBuffer()));
     const { text, totalPages } = await extractText(doc, { mergePages: true });
-    expect(totalPages).toBe(8);
+    expect(totalPages).toBe(13);
     const flat = (text as string).replace(/\s+/g, ' ');
     expect(flat).toContain('<40');
     const raw = calculate(TC03, getBundledModelParams()).morrow_age;
@@ -529,7 +529,7 @@ describe('AT-25 · AT-32 · AT-34 · salud', () => {
       const priv = await healthGet(getReq('/api/health', { authorization: 'Bearer cron-secret-test-0000' }));
       const pb = await priv.json();
       expect(pb.capabilities).toMatchObject({ supabase: false, email: false });
-      expect(pb.monetization).toEqual({ mode: 'validation', stripeActive: false });
+      expect(pb.monetization).toEqual({ mode: 'validation', stripeActive: false, paypalActive: false });
       const wrong = await healthGet(getReq('/api/health', { authorization: 'Bearer nope' }));
       expect(await wrong.json()).not.toHaveProperty('capabilities');
     } finally {
@@ -545,7 +545,8 @@ describe('AT-25 · AT-32 · AT-34 · salud', () => {
       { body: { calculationId: r.calculationId, email: EMAIL, locale: 'pt', serviceConsent: true }, sessionId: r.newSessionId },
       { schedule: (x) => void tasks.push(x) },
     );
-    expect(lead.reportUrl).toContain('/pt/report/');
+    expect(lead.mode).toBe('report');
+    expect('reportUrl' in lead && lead.reportUrl).toContain('/pt/report/');
     for (const task of tasks) await task();
     expect(testMailbox.to(EMAIL)[0]!.subject).toBe('Seu relatório do MorrowAge está pronto');
   });

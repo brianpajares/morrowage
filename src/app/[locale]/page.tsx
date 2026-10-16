@@ -9,7 +9,16 @@ import { buttonVariants } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
 import type { Locale } from '@/lib/locales';
+import { getEnv } from '@/lib/env';
+import { formatUsd } from '@/lib/price';
+import { FULL_REPORT_PAGES } from '@/lib/report/constants';
 import { pageMetadata } from '@/lib/seo';
+
+/**
+ * Muestra el precio real cuando los pagos están activos: la configuración (PAYPAL_*, REPORT_PRICE_USD) se
+ * lee en cada petición y no se congela en el build estático.
+ */
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -42,7 +51,11 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
 
   const steps = t.raw('steps') as Array<{ title: string; body: string }>;
   const freeItems = t.raw('freeItems') as string[];
-  const fullItems = t.raw('fullItems') as string[];
+  const env = getEnv();
+  const paidMode = env.paypalActive;
+  const priceLabel = formatUsd(env.price.amountMinor, locale);
+  const fill = (s: string) => s.replace('{pages}', String(FULL_REPORT_PAGES)).replace('{price}', priceLabel);
+  const fullItems = paidMode ? (t.raw('fullItemsPaid') as string[]).map(fill) : (t.raw('fullItems') as string[]);
   const notItems = t.raw('notItems') as string[];
 
   return (
@@ -171,7 +184,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           <Card className="space-y-4 border-primary/40 bg-gradient-to-br from-primary/8 to-surface p-6">
             <div className="flex flex-wrap items-center gap-3">
               <h3 className="text-xl font-bold">{t('fullTitle')}</h3>
-              <Badge tone="primary">{t('fullBadge')}</Badge>
+              <Badge tone="primary">{paidMode ? fill(t.raw('fullBadgePaid') as string) : t('fullBadge')}</Badge>
             </div>
             <ul className="space-y-3">
               {fullItems.map((i) => (
