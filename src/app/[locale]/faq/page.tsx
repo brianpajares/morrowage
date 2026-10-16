@@ -6,7 +6,12 @@ import { buttonVariants } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import type { Locale } from '@/lib/locales';
 import { pageMetadata } from '@/lib/seo';
+import { getEnv } from '@/lib/env';
+import { formatUsd } from '@/lib/price';
+import { FULL_REPORT_PAGES } from '@/lib/report/constants';
 import { getMessages } from '@/messages';
+
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -17,7 +22,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
 export default async function FaqPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const m = getMessages(locale).faq;
+  const all = getMessages(locale);
+  const env = getEnv();
+  // En modo de pago, la respuesta de «¿Cuánto cuesta?» dice el precio real (nunca «gratis»).
+  const items = m_items(all.faq.items, env.paypalActive ? all.landing.faqPricePaid.replace('{pages}', String(FULL_REPORT_PAGES)).replace('{price}', formatUsd(env.price.amountMinor, locale)) : null);
+  const m = { ...all.faq, items };
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -35,4 +44,10 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: Lo
       </div>
     </ContentPage>
   );
+}
+
+/** Sustituye la respuesta de la pregunta de precio (la única que menciona coste) cuando hay cobro. */
+function m_items<T extends { q: string; a: string }>(items: readonly T[], paidAnswer: string | null): T[] {
+  if (!paidAnswer) return [...items];
+  return items.map((i) => (/cuest|cost|custa/i.test(i.q) ? { ...i, a: paidAnswer } : i));
 }

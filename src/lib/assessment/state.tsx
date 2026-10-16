@@ -39,7 +39,11 @@ export interface CalculationSnapshot {
 export interface DeliveryInfo {
   leadId: string;
   /** Enlace personal al informe (contiene el token). Solo en sessionStorage de esta pestaña. */
-  reportUrl: string;
+  reportUrl?: string;
+  /** Modo de pago: enlace de desbloqueo (contiene el token). Solo en sessionStorage de esta pestaña. */
+  unlockUrl?: string;
+  /** Destino del correo, enmascarado (`a***@gmail.com`): nunca el email completo. */
+  emailMasked?: string;
 }
 
 export interface AssessmentState {

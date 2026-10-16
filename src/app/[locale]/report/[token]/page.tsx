@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages as getIntlMessages, setRequestLocale } from 'next-intl/server';
 import { ArrowRight, Download, Printer, ShieldCheck, Trash2 } from 'lucide-react';
@@ -16,6 +17,7 @@ import { cn } from '@/lib/cn';
 import { getEnv } from '@/lib/env';
 import { getModelSnapshot } from '@/lib/drive/loader';
 import type { Locale } from '@/lib/locales';
+import { buildProfileRows, GUIDE_FIELDS, topDriverFields, type ProfileRow } from '@/lib/report/extras';
 import { formatDate, formatInputValue, formatNumber, formatSigned, interp } from '@/lib/report/format';
 import type { ReportData } from '@/lib/report/types';
 import { getMessages, type Messages } from '@/messages';
@@ -34,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
   };
 }
 
-const SECTION_IDS = ['summary', 'meaning', 'sensitivity', 'drivers', 'scenarios', 'plan', 'method', 'sources'] as const;
+const SECTION_IDS = ['summary', 'meaning', 'profile', 'sensitivity', 'drivers', 'scenarios', 'guide', 'plan', 'followup', 'questions', 'glossary', 'method', 'sources'] as const;
 
 export default async function ReportPage({ params }: { params: Promise<{ locale: Locale; token: string }> }) {
   const { locale, token } = await params;
@@ -47,6 +49,9 @@ export default async function ReportPage({ params }: { params: Promise<{ locale:
   } catch {
     found = 'unavailable';
   }
+
+  // Informe bloqueado (modo de pago, sin pagar): ni un dato del informe; se lleva al desbloqueo.
+  if (found !== 'unavailable' && found.status === 'locked') redirect(`/${locale}/unlock/${token}`);
 
   if (found === 'unavailable' || found.status !== 'ok') {
     const state = found === 'unavailable' ? 'notFound' : found.status === 'expired' ? 'expired' : 'notFound';
@@ -95,10 +100,15 @@ export default async function ReportPage({ params }: { params: Promise<{ locale:
   const nav: Array<[(typeof SECTION_IDS)[number], string]> = [
     ['summary', msg.preview.eyebrow],
     ['meaning', r.meaning.title],
+    ['profile', r.profile.title],
     ['sensitivity', msg.report.sensitivity],
     ['drivers', msg.report.drivers],
     ['scenarios', r.scenarios.title],
+    ['guide', r.guide.title],
     ['plan', r.plan.title],
+    ['followup', r.followup.title],
+    ['questions', r.questions.title],
+    ['glossary', r.glossary.title],
     ['method', msg.report.method],
     ['sources', r.sources.title],
   ];
@@ -211,6 +221,33 @@ export default async function ReportPage({ params }: { params: Promise<{ locale:
             <p className="rounded-md border-l-4 border-primary bg-surface-alt px-4 py-3 text-sm">{r.meaning.calibration}</p>
           </section>
 
+          {/* 2b · Perfil frente al benchmark */}
+          <section id="sec-profile" aria-labelledby="h-profile" className="scroll-mt-24 space-y-4">
+            <h2 id="h-profile" className={sectionTitle}>
+              {r.profile.title}
+            </h2>
+            <p className="text-muted">{r.profile.intro}</p>
+            <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+              <table className="w-full min-w-[34rem] text-sm">
+                <thead className="bg-surface-alt text-left text-xs uppercase tracking-wide text-muted">
+                  <tr>
+                    {[r.driversSection.variable, r.profile.position, r.profile.yourValue, r.profile.benchmark].map((h) => (
+                      <th key={h} scope="col" className="px-4 py-2 font-bold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {buildProfileRows(data).map((row) => (
+                    <ProfileRowView key={row.field} row={row} locale={locale} msg={msg} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="rounded-md border-l-4 border-primary bg-surface-alt px-4 py-3 text-sm">{r.profile.note}</p>
+          </section>
+
           {/* 3 · Sensibilidad de medición */}
           <section id="sec-sensitivity" aria-labelledby="h-sensitivity" className="scroll-mt-24 space-y-4">
             <h2 id="h-sensitivity" className={sectionTitle}>
@@ -311,6 +348,38 @@ export default async function ReportPage({ params }: { params: Promise<{ locale:
             </NextIntlClientProvider>
           </section>
 
+          {/* 5b · Guía de medición */}
+          <section id="sec-guide" aria-labelledby="h-guide" className="scroll-mt-24 space-y-4">
+            <h2 id="h-guide" className={sectionTitle}>
+              {r.guide.title}
+            </h2>
+            <p className="text-muted">{r.guide.intro}</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              {GUIDE_FIELDS.map((field) => {
+                const g = r.guide.items[field];
+                return (
+                  <Card key={field} className="space-y-2 p-5">
+                    <h3 className="text-lg font-bold">{label(field)}</h3>
+                    <dl className="space-y-2 text-sm">
+                      {(
+                        [
+                          [r.guide.what, g.what],
+                          [r.guide.how, g.how],
+                          [r.guide.avoid, g.avoid],
+                        ] as const
+                      ).map(([term, text]) => (
+                        <div key={term}>
+                          <dt className="font-bold text-primary">{term}</dt>
+                          <dd>{text}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+
           {/* 6 · Próximos pasos */}
           <section id="sec-plan" aria-labelledby="h-plan" className="scroll-mt-24 space-y-4">
             <h2 id="h-plan" className={sectionTitle}>
@@ -323,6 +392,107 @@ export default async function ReportPage({ params }: { params: Promise<{ locale:
                 ))}
               </ol>
               <p className="text-sm text-muted">{r.plan.note}</p>
+            </Card>
+          </section>
+
+          {/* 6b · Seguimiento y registro */}
+          <section id="sec-followup" aria-labelledby="h-followup" className="scroll-mt-24 space-y-4">
+            <h2 id="h-followup" className={sectionTitle}>
+              {r.followup.title}
+            </h2>
+            <p className="text-muted">{r.followup.intro}</p>
+            <Card className="space-y-3 p-6">
+              <h3 className="text-lg font-bold">{r.followup.stepsTitle}</h3>
+              <ul className="space-y-2">
+                {r.followup.steps.map((i) => (
+                  <li key={i} className="flex gap-2.5">
+                    <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
+                    {i}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+            <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+              <table className="w-full min-w-[40rem] text-sm">
+                <caption className="px-4 py-3 text-left">
+                  <span className="block font-bold">{r.followup.logTitle}</span>
+                  <span className="block text-xs font-normal text-muted">{r.followup.logIntro}</span>
+                </caption>
+                <thead className="bg-surface-alt text-left text-xs uppercase tracking-wide text-muted">
+                  <tr>
+                    {Object.values(r.followup.logColumns).map((h) => (
+                      <th key={h} scope="col" className="border-r border-line px-2 py-2 font-bold last:border-r-0">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 6 }, (_, row) => (
+                    <tr key={row} className="h-10 border-t border-line">
+                      {Object.keys(r.followup.logColumns).map((k) => (
+                        <td key={k} className="border-r border-line last:border-r-0" />
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-muted">{r.followup.logNote}</p>
+          </section>
+
+          <section id="sec-questions" aria-labelledby="h-questions" className="scroll-mt-24 space-y-4">
+            <h2 id="h-questions" className={sectionTitle}>
+              {r.questions.title}
+            </h2>
+            <p className="text-muted">{r.questions.intro}</p>
+            <Card className="space-y-3 p-6">
+              <ol className="list-decimal space-y-3 pl-5">
+                {r.questions.items.map((q) => (
+                  <li key={q}>{q}</li>
+                ))}
+              </ol>
+            </Card>
+            <Card className="space-y-3 p-6">
+              <h3 className="text-lg font-bold">{r.questions.topTitle}</h3>
+              <p className="text-sm text-muted">{r.questions.topIntro}</p>
+              <ul className="space-y-2">
+                {topDriverFields(data).map((f) => (
+                  <li key={f} className="flex gap-2.5">
+                    <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
+                    {interp(r.questions.topItem, { variable: label(f) })}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+            <p className="rounded-md border-l-4 border-primary bg-surface-alt px-4 py-3 text-sm">{r.questions.note}</p>
+          </section>
+
+          <section id="sec-glossary" aria-labelledby="h-glossary" className="scroll-mt-24 space-y-4">
+            <h2 id="h-glossary" className={sectionTitle}>
+              {r.glossary.title}
+            </h2>
+            <Card className="space-y-4 p-6">
+              <h3 className="text-lg font-bold">{r.glossary.termsTitle}</h3>
+              <dl className="space-y-3">
+                {r.glossary.terms.map((t) => (
+                  <div key={t.term}>
+                    <dt className="font-bold">{t.term}</dt>
+                    <dd className="text-sm text-muted">{t.def}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
+            <Card className="space-y-4 p-6">
+              <h3 className="text-lg font-bold">{r.glossary.faqTitle}</h3>
+              <dl className="space-y-3">
+                {r.glossary.faq.map((f) => (
+                  <div key={f.q}>
+                    <dt className="font-bold">{f.q}</dt>
+                    <dd className="text-sm text-muted">{f.a}</dd>
+                  </div>
+                ))}
+              </dl>
             </Card>
           </section>
 
@@ -398,5 +568,35 @@ export default async function ReportPage({ params }: { params: Promise<{ locale:
         </div>
       </div>
     </div>
+  );
+}
+
+/** Fila de «Tu perfil frente al benchmark»: círculo = tu valor, marca vertical = benchmark (con equivalente textual). */
+function ProfileRowView({ row, locale, msg }: { row: ProfileRow; locale: Locale; msg: Messages }) {
+  const p = msg.report.profile;
+  const userText = formatInputValue(locale, row.field, row.userValue, msg);
+  const benchText =
+    row.benchmarkValue === null ? msg.variables.benchmarkWeighted : row.field === 'cigarettes_per_day' ? msg.variables.benchmarkNever : formatInputValue(locale, row.field, row.benchmarkValue, msg);
+  const posText = row.position === 'category' ? p.category : row.position === 'above' ? p.above : row.position === 'below' ? p.below : p.near;
+  return (
+    <tr className="border-t border-line align-middle">
+      <th scope="row" className="px-4 py-3 text-left font-semibold">
+        {msg.variables[row.field].label}
+      </th>
+      <td className="px-4 py-3">
+        {row.userFrac !== undefined && row.benchFrac !== undefined ? (
+          <div className="relative h-5 w-44" role="img" aria-label={interp(p.scaleSummary, { min: row.min ?? 0, max: row.max ?? 0, value: userText, benchmark: benchText })}>
+            <div className="absolute inset-x-0 top-2 h-1.5 rounded-full bg-surface-alt ring-1 ring-line" />
+            <div className="absolute top-0.5 h-4 w-0.5 bg-fg/70" style={{ left: `${row.benchFrac * 100}%` }} />
+            <div className="absolute top-0.5 size-4 -translate-x-1/2 rounded-full bg-primary ring-2 ring-surface" style={{ left: `${row.userFrac * 100}%` }} />
+          </div>
+        ) : (
+          <span className="text-xs text-muted">{p.srhNote}</span>
+        )}
+        <p className="mt-1 text-xs font-semibold text-primary">{posText}</p>
+      </td>
+      <td className="px-4 py-3 tabular">{userText}</td>
+      <td className="px-4 py-3 tabular">{benchText}</td>
+    </tr>
   );
 }

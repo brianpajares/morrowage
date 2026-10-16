@@ -11,5 +11,5 @@ export default async function ReportRequestPage({ params }: { params: Promise<{ 
   setRequestLocale(locale);
   // Con Stripe activo el flujo gratuito de email no existe (la URL no es alcanzable).
   if (getEnv().stripeActive) notFound();
-  return <GateScreen />;
+  return <GateScreen phase={getEnv().paypalActive ? 'paypal' : 'validation'} />;
 }

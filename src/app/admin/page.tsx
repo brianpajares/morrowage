@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { AlertCircle, CheckCircle2, CircleDashed, Clock } from 'lucide-react';
 import { Badge, Card } from '@/components/ui/card';
 import { ApiError } from '@/server/http';
-import { funnel, listDeletionRequests, listLeads, requireAdmin } from '@/server/services/admin';
+import { funnel, listDeletionRequests, listLeads, requireAdmin, sales } from '@/server/services/admin';
 import { EraseButton, LogoutButton, ResendButton } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -70,7 +70,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     redirect('/admin/login');
   }
 
-  const [f, leads, deletions] = await Promise.all([funnel(days), listLeads({ limit: 50 }), listDeletionRequests()]);
+  const [f, leads, deletions, s] = await Promise.all([funnel(days), listLeads({ limit: 50 }), listDeletionRequests(), sales()]);
   const c = f.conversions;
 
   return (
@@ -101,6 +101,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           ['Preview → email', pct(c.previewToGate), `Mínimo operativo 25 %`],
           ['Tiempo mediano a preview', f.medianTimeBucket ? BUCKETS[f.medianTimeBucket] ?? f.medianTimeBucket : '—', 'Objetivo ≤ 75 s'],
           ['Coste por informe', f.cost.avgUsdPerReport === null ? '—' : `US$${f.cost.avgUsdPerReport.toFixed(4)}`, `Objetivo ≤ US$0.05 · ${f.cost.reports} informes`],
+        ].map(([label, value, hint]) => (
+          <Card key={label} className="space-y-1 p-5">
+            <p className="text-sm font-semibold text-muted">{label}</p>
+            <p className="text-3xl font-extrabold tabular">{value}</p>
+            <p className="text-xs text-muted">{hint}</p>
+          </Card>
+        ))}
+      </section>
+
+      <section aria-label="Ventas" className="grid gap-4 sm:grid-cols-3">
+        {[
+          ['Ventas pagadas', String(s.paidOrders), s.sandboxOrders > 0 ? `${s.sandboxOrders} en Sandbox (prueba)` : 'Cobros reales'],
+          ['Importe bruto', `US$${(s.paidAmountMinor / 100).toFixed(2)}`, 'Antes de comisiones de PayPal'],
+          ['Entregas pendientes', String(s.pendingFulfillment), s.pendingFulfillment > 0 ? 'El cron diario las reintenta' : 'Todo entregado'],
         ].map(([label, value, hint]) => (
           <Card key={label} className="space-y-1 p-5">
             <p className="text-sm font-semibold text-muted">{label}</p>

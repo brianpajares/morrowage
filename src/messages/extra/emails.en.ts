@@ -23,6 +23,26 @@ export const emailsEn: Shape<typeof emailsEs> = {
       intro:
         'Thank you for using MorrowAge. This is the personal link to your full report, with measurement sensitivity, associations, scenarios and methodology.',
     },
+    preview: {
+      subject: 'Your MorrowAge preview · unlock your full report',
+      preheader: 'Your preview is attached. Unlock the full report whenever you like.',
+      title: 'Thank you for trusting MorrowAge',
+      intro:
+        'We prepared your personalized analysis. The attached PDF is your preview: your result and the structure of your full report, with {pages} pages of useful information about your data.',
+      includesTitle: 'Your full report includes',
+      includes: [
+        'Your profile, input by input, versus the benchmark',
+        'Measurement sensitivity and all associations ranked by weight',
+        'Educational scenarios you can explore',
+        'A guide to measure each input well, plus a follow-up log',
+        'Questions to bring to a professional, glossary, methodology and sources',
+      ],
+      cta: 'Unlock my full report · {price}',
+      mission:
+        'Your contribution lets our team of developers keep building tools that help people around the world better understand their health data.',
+      securePay: 'One-time, secure payment with PayPal or card. Once confirmed, you will receive the complete PDF in this same inbox.',
+      later: 'No rush: your link stays active until it expires.',
+    },
     paid: {
       subject: 'Payment confirmed · your MorrowAge report',
       preheader: 'Thank you for your purchase. Your report and PDF are ready.',

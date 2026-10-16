@@ -1,7 +1,9 @@
 # MorrowAge
 
 Edad equivalente de riesgo poblacional (modelo v2.1) con informe web + PDF. **No es edad biológica, ni diagnóstico, ni riesgo absoluto a 10 años.**
-Next.js 16 (App Router) · TypeScript strict · Tailwind 4 · next-intl (ES/EN/PT) · Supabase · Google Drive · Resend · `@react-pdf/renderer` · Stripe detrás de feature flag.
+Next.js 16 (App Router) · TypeScript strict · Tailwind 4 · next-intl (ES/EN/PT) · Supabase · Google Drive · Resend · `@react-pdf/renderer` · **PayPal Checkout** (modo `paypal`) · Stripe detrás de feature flag.
+
+> **Monetización:** vista previa difuminada gratis por correo → pago único con PayPal → PDF completo (13 páginas) automático. Guía de configuración: [`docs/PAYPAL_SETUP.md`](docs/PAYPAL_SETUP.md) · correo: [`docs/EMAIL_SETUP.md`](docs/EMAIL_SETUP.md) · auditoría: [`docs/AUDITORIA_2026-10-16.md`](docs/AUDITORIA_2026-10-16.md).
 
 > Fuente de verdad del producto: `docs/PRD.md`, `docs/ACCEPTANCE_TESTS.md`, `spec/` y `ux/` (paquete BUILD v4). Decisiones de implementación: `DECISIONS.md`. Estado y evidencia: `docs/evidence/`.
 
@@ -23,6 +25,7 @@ Sin ninguna credencial la app calcula y muestra la vista previa; la entrega por 
 | `npm run test:vectors` | 18/18 vectores de oro contra `spec/test_vectors.json` (rel_tol 1e-6) |
 | `npm run test:e2e` | Playwright (móvil 360 y escritorio 1280, axe, funnel completo). Requiere `npm run build` |
 | `npm run build` | Build de producción |
+| `npm run db:bundle` | Genera `supabase/bundle.sql` (todas las migraciones en un archivo para el SQL Editor) |
 | `npm run drive:sync` | Sube `drive/` a `GOOGLE_DRIVE_FOLDER_ID` verificando SHA-256 (`-- --dry-run` valida sin credenciales) |
 | `npm run check:placeholders` · `check:drive` | AT-36 (marcadores/secretos) · manifest ↔ `drive/` |
 | `BASE_URL=… npm run perf:api` | p95 de route handlers (AT-29) |
@@ -49,7 +52,8 @@ Garantías de privacidad que los tests comprueban: raw MorrowAge nunca visible f
 2. **Google Drive**: crear `/Apps/morrowage`, compartirla con la service account y ejecutar `npm run drive:sync`. (Sin Drive, la app usa el snapshot empaquetado verificado por SHA-256.)
 3. **Resend**: verificar dominio (SPF/DKIM/DMARC) y fijar `EMAIL_FROM`, `OWNER_EMAIL`.
 4. **Vercel**: importar el repo de GitHub y definir las variables de `.env.example` (más `CRON_SECRET`, opcional `SESSION_PEPPER` y `NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL`). `vercel.json` programa el cron diario de purga/reintentos.
-5. **Stripe** permanece apagado (`MONETIZATION_MODE=validation`, `STRIPE_ENABLED=false`). Activar solo con evidencia de tracción y revisión legal (`docs/LAUNCH_CHECKLIST.md`).
+5. **Cobros con PayPal** (opcional): `MONETIZATION_MODE=paypal` + `PAYPAL_*` (ver `docs/PAYPAL_SETUP.md`). Empieza en Sandbox; LIVE exige `PAYPAL_ENV=live` **y** `PAYMENTS_LIVE_APPROVED=true`. Sin esas variables la app envía el informe completo gratis. `/api/health` muestra `payments` e `integrations` sin secretos.
+6. **Stripe** permanece apagado (`MONETIZATION_MODE=validation`, `STRIPE_ENABLED=false`). Activar solo con evidencia de tracción y revisión legal (`docs/LAUNCH_CHECKLIST.md`).
 
 ## Operación
 

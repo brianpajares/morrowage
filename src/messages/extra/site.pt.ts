@@ -74,6 +74,15 @@ export const sitePt: Shape<typeof siteEs> = {
     ],
     fullTitle: 'Relatório completo',
     fullBadge: 'Grátis nesta fase',
+    fullBadgePaid: 'Pagamento único {price}',
+    fullItemsPaid: [
+      'Seu perfil frente ao benchmark e sensibilidade de medição',
+      'Todas as associações ordenadas por peso',
+      'Cenários educativos que você pode explorar',
+      'Guia de medição, registro de acompanhamento e perguntas para seu profissional',
+      'Glossário, metodologia e fontes · PDF de {pages} páginas',
+    ],
+    faqPricePaid: 'Seu resultado e a prévia são grátis. O relatório completo de {pages} páginas é um pagamento único de {price}, sem assinatura, e você vê o que ele contém antes de pagar.',
     fullItems: [
       'Sensibilidade de medição (não é um intervalo de confiança)',
       'Todas as associações, ordenadas por peso',

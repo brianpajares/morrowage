@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { ArrowRight, BarChart3, Layers, Lock, Sparkles } from 'lucide-react';
 import { AgeScale } from '@/components/charts/age-scale';
+import { PaywallCard } from '@/components/assessment/paywall-card';
 import { Accordion } from '@/components/ui/controls';
 import { Badge, Card } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -16,7 +17,18 @@ import type { Locale } from '@/lib/locales';
 import { formatNumber } from '@/lib/report/format';
 
 /** Vista previa gratuita: SOLO los elementos `free_preview` (spec/outputs_spec.json). */
-export function PreviewScreen({ sessionId, phase }: { sessionId: string; phase: 'validation' | 'stripe' }) {
+export function PreviewScreen({
+  sessionId,
+  phase,
+  priceLabel,
+  pages,
+}: {
+  sessionId: string;
+  phase: 'validation' | 'stripe' | 'paypal';
+  /** Precio ya formateado (solo en modo de pago). */
+  priceLabel?: string;
+  pages: number;
+}) {
   const t = useTranslations('preview');
   const trust = useTranslations('trust');
   const v = useTranslations('variables');
@@ -127,7 +139,9 @@ export function PreviewScreen({ sessionId, phase }: { sessionId: string; phase: 
           ]}
         />
 
-        <section aria-labelledby="locked-title" className="space-y-3 pt-2">
+        {phase === 'paypal' ? <PaywallCard priceLabel={priceLabel ?? ''} pages={pages} /> : null}
+
+        <section aria-labelledby="locked-title" className={cn('space-y-3 pt-2', phase === 'paypal' && 'hidden')}>
           <p id="locked-title" className="text-base font-semibold">
             {t('locked')}
           </p>
@@ -153,14 +167,16 @@ export function PreviewScreen({ sessionId, phase }: { sessionId: string; phase: 
         </section>
 
         <div className="flex flex-col items-stretch gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
-          <Link
-            href={cta}
-            onClick={() => track('preview_unlock_click', { phase })}
-            className={cn(buttonVariants({ size: 'lg' }), 'group w-full sm:w-auto')}
-          >
-            {t('cta')}
-            <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-          </Link>
+          {phase === 'paypal' ? null : (
+            <Link
+              href={cta}
+              onClick={() => track('preview_unlock_click', { phase })}
+              className={cn(buttonVariants({ size: 'lg' }), 'group w-full sm:w-auto')}
+            >
+              {t('cta')}
+              <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
+          )}
           <p className="text-xs text-muted">
             {trust('source')} ·{' '}
             <Link href="/methodology" className="font-semibold text-primary underline underline-offset-4" onClick={() => track('methodology_open', { origin_screen: 'preview' })}>

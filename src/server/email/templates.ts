@@ -6,6 +6,7 @@
  */
 import { createTranslator, type AbstractIntlMessages } from 'next-intl';
 import { INTL_TAG, type Locale } from '@/lib/locales';
+import { formatUsd } from '@/lib/price';
 import { getMessages } from '@/messages';
 import type { ModelOutput } from '@/lib/model/engine';
 import type { Inputs } from '@/lib/model/input-spec';
@@ -111,8 +112,79 @@ ${button(i.reportUrl, c('openReport'))}
   return { subject, html: shell({ lang: i.locale, title: u('title'), preheader, body, footer }), text };
 }
 
+export interface PreviewEmailInput {
+  locale: Locale;
+  /** Enlace de desbloqueo `/[locale]/unlock/<token>`. */
+  unlockUrl: string;
+  verificationId: string;
+  expiresAt: Date;
+  ttlDays: number;
+  amountMinor: number;
+  pages: number;
+  deleteUrl: string;
+  /** false si el PDF de vista previa no pudo generarse: el correo sigue llevando el enlace. */
+  pdfAttached: boolean;
+}
+
+/**
+ * Correo de vista previa (modo de pago): tono profesional y motivador, sin sonar a «cobro».
+ * Sin datos de salud en el cuerpo: el resultado vive en el PDF adjunto y detrás del enlace.
+ */
+export function buildPreviewEmail(i: PreviewEmailInput): EmailContent {
+  const c = tr(i.locale, 'emails.common');
+  const u = tr(i.locale, 'emails.preview');
+  const price = formatUsd(i.amountMinor, i.locale);
+  const date = formatDate(i.expiresAt, i.locale);
+  const subject = u('subject');
+  const cta = u('cta', { price });
+  const intro = u('intro', { pages: i.pages });
+  const includes = (createTranslator({ locale: i.locale, messages: getMessages(i.locale) as unknown as AbstractIntlMessages, namespace: 'emails.preview' }) as unknown as { raw: (k: string) => string[] }).raw('includes');
+  const expiry = c('expiry', { days: i.ttlDays, date });
+
+  const body = `
+<h1 style="margin:0 0 12px;font-size:26px;line-height:1.2;letter-spacing:-0.02em;">${esc(u('title'))}</h1>
+<p style="margin:0 0 14px;font-size:16px;line-height:1.6;">${esc(intro)}</p>
+<p style="margin:0 0 6px;font-size:14px;font-weight:700;">${esc(u('includesTitle'))}</p>
+<ul style="margin:0 0 6px;padding-left:20px;font-size:14px;line-height:1.7;">${includes.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+${button(i.unlockUrl, cta)}
+<p style="margin:0 0 10px;font-size:14px;line-height:1.6;">${esc(u('securePay'))}</p>
+<p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#475569;">${esc(u('mission'))}</p>
+<p style="margin:0 0 6px;font-size:13px;color:#475569;">${esc(c('linkFallback'))}</p>
+<p style="margin:0 0 14px;font-size:13px;word-break:break-all;"><a href="${esc(i.unlockUrl)}" style="color:${BRAND};">${esc(i.unlockUrl)}</a></p>
+<p style="margin:0 0 6px;font-size:13px;line-height:1.6;color:#475569;">${esc(u('later'))} ${esc(expiry)}</p>
+<p style="margin:0 0 6px;font-size:13px;line-height:1.6;color:#475569;"><strong>${esc(c('verificationId'))}:</strong> ${esc(i.verificationId)}</p>
+<p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:#475569;">${esc(c('notBio'))}</p>`;
+
+  const footer = `${esc(c('whyReceived'))}<br>${esc(c('deleteData', { url: i.deleteUrl }))}<br><br>${esc(c('disclaimer'))}`;
+
+  const text = [
+    u('title'),
+    '',
+    intro,
+    '',
+    u('includesTitle'),
+    ...includes.map((x) => `- ${x}`),
+    '',
+    `${cta}: ${i.unlockUrl}`,
+    '',
+    u('securePay'),
+    u('mission'),
+    '',
+    `${u('later')} ${expiry}`,
+    `${c('verificationId')}: ${i.verificationId}`,
+    c('notBio'),
+    '',
+    '--',
+    c('whyReceived'),
+    c('deleteData', { url: i.deleteUrl }),
+    c('disclaimer'),
+  ].join('\n');
+
+  return { subject, html: shell({ lang: i.locale, title: u('title'), preheader: u('preheader'), body, footer }), text };
+}
+
 export interface OwnerEmailInput {
-  kind: 'validation' | 'paid';
+  kind: 'validation' | 'paid' | 'lead_paywall';
   verificationId: string;
   leadId: string;
   calculationId: string;
@@ -146,7 +218,7 @@ export function buildOwnerEmail(i: OwnerEmailInput): EmailContent {
   const o = i.output;
 
   const meta: Array<[string, string]> = [
-    ['Tipo', i.kind === 'paid' ? 'Compra (Stripe)' : 'Validation (gratis)'],
+    ['Tipo', i.kind === 'paid' ? 'Compra (Stripe)' : i.kind === 'lead_paywall' ? 'Lead · vista previa enviada, pendiente de pago' : 'Validation (gratis)'],
     ['Verification ID', i.verificationId],
     ['Lead ID', i.leadId],
     ['Calculation ID', i.calculationId],
@@ -182,7 +254,7 @@ ${section('Inputs canónicos', inputRows)}
 ${section('Resultados (incluye valores RAW de auditoría)', resultRows)}
 <p style="margin:18px 0 0;font-size:13px;color:#475569;">${i.pdfAttached ? 'El PDF completo del informe va adjunto.' : 'No se pudo generar el PDF adjunto; el informe web sigue disponible. Reenvía desde /admin.'}</p>`;
 
-  const footer = 'MorrowAge · notificación operacional (validation). No responder a este mensaje.';
+  const footer = 'MorrowAge · notificación operacional. No responder a este mensaje.';
 
   const text = [
     `Solicitud de informe ${i.verificationId}`,
@@ -202,4 +274,57 @@ ${section('Resultados (incluye valores RAW de auditoría)', resultRows)}
   ].join('\n');
 
   return { subject, html: shell({ lang: 'es', title: subject, preheader: `Solicitud ${i.verificationId}`, body, footer }), text };
+}
+
+export interface SaleEmailInput {
+  verificationId: string;
+  orderId: string;
+  paypalOrderId: string | null;
+  captureId: string | null;
+  amountMinor: number;
+  currency: string;
+  sandbox: boolean;
+  delivered: boolean;
+  email: string;
+  paidAt: string | null;
+  deliveryNote?: string;
+}
+
+/**
+ * Aviso de venta al dueño: `MorrowAge | VENTA CONFIRMADA US$19 | <ID> | ENTREGADO [| SANDBOX]`.
+ * Solo datos comerciales (sin datos de salud): el PDF completo ya llegó con el lead.
+ */
+export function buildSaleEmail(i: SaleEmailInput): EmailContent {
+  const usd = formatUsd(i.amountMinor, 'en');
+  const status = i.delivered ? 'ENTREGADO' : 'ENTREGA PENDIENTE';
+  const subject = `MorrowAge | VENTA CONFIRMADA ${usd} | ${i.verificationId} | ${status}${i.sandbox ? ' | SANDBOX' : ''}`;
+  const rows: Array<[string, string]> = [
+    ['Estado', status],
+    ['Entorno de cobro', i.sandbox ? 'SANDBOX (pago de prueba, no es dinero real)' : 'LIVE (cobro real)'],
+    ['Importe', `${(i.amountMinor / 100).toFixed(2)} ${i.currency.toUpperCase()}`],
+    ['Verification ID', i.verificationId],
+    ['Email del cliente', i.email],
+    ['Pedido', i.orderId],
+    ['PayPal order id', i.paypalOrderId ?? '—'],
+    ['PayPal capture id', i.captureId ?? '—'],
+    ['Pagado el', i.paidAt ?? '—'],
+  ];
+  if (i.deliveryNote) rows.push(['Nota de entrega', i.deliveryNote]);
+  const body = `
+<h1 style="margin:0 0 8px;font-size:22px;line-height:1.25;">${esc(subject)}</h1>
+${section('Venta', rows)}
+<p style="margin:18px 0 0;font-size:13px;color:#475569;">El cliente recibe el PDF completo en su correo. Los reembolsos se hacen desde el panel de PayPal; el estado REFUNDED se refleja aquí vía webhook.</p>`;
+  const text = [subject, '', ...rows.map(([k, v]) => `${k}: ${v}`)].join('\n');
+  return { subject, html: shell({ lang: 'es', title: subject, preheader: subject, body, footer: 'MorrowAge · notificación operacional de ventas. No responder a este mensaje.' }), text };
+}
+
+/** Alertas operativas al dueño (disputa, pago duplicado, importe inválido…). Sin datos de salud. */
+export function buildOwnerAlertEmail(i: { subject: string; lines: Array<[string, string]> }): EmailContent {
+  const subject = `MorrowAge | ${i.subject}`;
+  const body = `
+<h1 style="margin:0 0 8px;font-size:22px;line-height:1.25;">${esc(i.subject)}</h1>
+<p style="margin:0 0 12px;padding:12px 14px;background:#FEE2E2;border:1px solid #F87171;border-radius:8px;font-size:13px;line-height:1.5;color:#7F1D1D;">Requiere revisión manual en el panel de PayPal.</p>
+${section('Detalle', i.lines)}`;
+  const text = [subject, '', ...i.lines.map(([k, v]) => `${k}: ${v}`)].join('\n');
+  return { subject, html: shell({ lang: 'es', title: subject, preheader: subject, body, footer: 'MorrowAge · alerta operacional. No responder a este mensaje.' }), text };
 }

@@ -1,25 +1,23 @@
-# STATUS · MorrowAge (construcción interrumpida por límite de uso — 2026-10-07)
+# STATUS · MorrowAge (2026-10-16 · auditoría + pagos con PayPal)
 
+Rama de trabajo: `feat/paypal-paywall-audit` (sin fusionar a `main`: fusionar = desplegar a producción en Vercel).
 Repo local: `C:\Users\brian.pajares\dev\morrowage` (fuera de OneDrive a propósito: `node_modules` rompe la sincronización).
-**No está en GitHub ni desplegado en Vercel todavía. No hay URL.**
 
-## Hecho y verificado con tests
-- Paquete BUILD v4 copiado al repo (docs/, spec/, model/, ux/, drive/…).
-- Motor TS portado de `engine_reference.py`: **18/18 vectores** (`npm run test:vectors`), paridad XLSX↔JSON.
-- Validación de inputs desde `spec/inputs.schema.json`, display seguro `<40`/`>69`, conversiones de unidades, escenarios what-if.
-- Drive: cliente service account, SHA-256, cache 24 h, last-known-good (memoria → /tmp → snapshot empaquetado), `npm run drive:sync` (+ `--dry-run`). 11 tests.
-- Migraciones Supabase + RLS probadas en Postgres real en proceso (PGlite): 8 tests (AT-33).
-- Seguridad: tokens hasheados, rate limit (Upstash o memoria), Turnstile, logger/Sentry con redacción, allowlist de analítica.
-- Stores (Supabase y memoria), `/api/calculate`, `/api/events`, `/api/health`.
-- i18n ES/EN/PT tipado (paridad por compilador), landing, header/footer, UI base, PDF de 8 páginas (5 tests).
+## Hecho y verificado
+- **Auditoría** completa: `docs/AUDITORIA_2026-10-16.md` (hallazgos, acciones, 22 lecciones de PivotWorth, lo no verificado).
+- **Modo de pago `MONETIZATION_MODE=paypal`**: vista previa difuminada por correo → `/[locale]/unlock/<token>` → PayPal/tarjeta → PDF completo + «VENTA CONFIRMADA». Sin configuración de pagos, informe gratis. Doble interruptor para LIVE.
+- **PDF completo de 13 páginas** y **vista previa de 5 páginas** sin fuga de valores bloqueados (test sobre 3 vectores × 3 idiomas). Informe web con las mismas secciones.
+- UX: bloque de valor + precio en la vista previa, éxito con `ref:` de diagnóstico, página de desbloqueo, landing/FAQ con precio real, estados de pago.
+- Seguridad/operación: CSP/COOP/Permissions-Policy para PayPal, `/unlock/` noindex, `/api/health` con `integrations` y `payments` sin secretos, normalización de `OWNER_EMAIL`/`EMAIL_FROM`, panel de ventas, cron que reintenta entregas.
+- Pruebas: `npm run verify` en verde (180 tests: unitarios, integración, RLS en Postgres real, vectores 18/18, PDF, pagos con PayPal simulado), `check:placeholders`, `check:drive`, E2E Playwright 38/38 (móvil 360 + escritorio 1280, axe, 320 px).
 
-## Pendiente (en orden)
-1. PDF: el **footer fijo no aparece** en el texto extraído (el encabezado sí). Revisar visualmente `.scratch/sample-TC01-es.pdf` (`npx tsx scripts/sample-pdf.ts`).
-2. Servicios: `leads`, `delivery` (PDF + emails usuario/owner), `report` por token, borrado, admin, Stripe (flags), cron de purga.
-3. Rutas API restantes y páginas: calculate (8 pasos + test de reacción), processing, preview, report-request, success, report, metodología, FAQ, privacidad, términos, SEO por país/guías, admin.
-4. Mensajes pendientes: legal, SEO, admin; test de paridad de mensajes.
-5. Tests: unit de servicios, e2e Playwright, axe, Lighthouse, p95, escaneo de logs/placeholders; CI en GitHub Actions; README; evidencia de AT-01…36.
-6. Despliegue: crear repo GitHub (no hay `gh` ni credenciales; hacerlo desde el navegador o con `gh auth login`), proyecto Vercel (equipo personal), proyecto Supabase (**tiene costo: confirmar antes**) y variables de entorno.
+## Pendiente (lo hace el dueño; guía en `docs/PAYPAL_SETUP.md`)
+1. Proyecto Supabase (costo: confirmar) y pegar `supabase/bundle.sql` en el SQL Editor.
+2. Resend: API key + dominio verificado (SPF/DKIM) → `EMAIL_FROM`, `OWNER_EMAIL`.
+3. PayPal **Sandbox**: app + webhook → `PAYPAL_*`; `MONETIZATION_MODE=paypal`; Redeploy; compra de prueba completa.
+4. Revisión legal (razón social, domicilio, reembolsos) y decisión del **precio** (`REPORT_PRICE_USD`, hoy US$19).
+5. LIVE solo con aprobación: `PAYPAL_ENV=live` + `PAYMENTS_LIVE_APPROVED=true`, compra real propia y reembolso.
+6. Medidas de rendimiento sobre el despliegue (Lighthouse ≥ 90, p95 < 2 s): la landing pasó a render dinámico.
 
-## Variables que necesito de ti para monetizar
-`RESEND_API_KEY` + dominio verificado (SPF/DKIM/DMARC), `OWNER_EMAIL`, Turnstile, Upstash, PostHog, Sentry, credenciales de Google Drive. Sin ellas la app degrada de forma segura (ver `/api/health` con `Authorization: Bearer $CRON_SECRET`).
+## No verificado aún
+PayPal Sandbox real, Resend real y Supabase real (probados con mocks/PGlite). No se pudo revisar visualmente el PDF renderizado como imagen en este entorno.

@@ -23,6 +23,26 @@ export const emailsPt: Shape<typeof emailsEs> = {
       intro:
         'Obrigado por usar o MorrowAge. Este é o link pessoal do seu relatório completo, com sensibilidade de medição, associações, cenários e metodologia.',
     },
+    preview: {
+      subject: 'Sua prévia do MorrowAge · desbloqueie seu relatório completo',
+      preheader: 'Anexamos sua prévia. Desbloqueie o relatório completo quando quiser.',
+      title: 'Obrigado por confiar no MorrowAge',
+      intro:
+        'Preparamos sua análise personalizada. No PDF anexo está a prévia: seu resultado e a estrutura do relatório completo, com {pages} páginas de informação útil sobre os seus dados.',
+      includesTitle: 'Seu relatório completo inclui',
+      includes: [
+        'Seu perfil, dado a dado, frente ao benchmark',
+        'Sensibilidade de medição e todas as associações ordenadas por peso',
+        'Cenários educativos que você pode explorar',
+        'Guia para medir cada dado com qualidade e registro de acompanhamento',
+        'Perguntas para levar a um profissional, glossário, metodologia e fontes',
+      ],
+      cta: 'Desbloquear meu relatório completo · {price}',
+      mission:
+        'Sua contribuição permite que nossa equipe de desenvolvedores continue criando ferramentas que ajudam pessoas do mundo todo a entender melhor seus dados de saúde.',
+      securePay: 'Pagamento único e seguro com PayPal ou cartão. Assim que for confirmado, você receberá o PDF completo neste mesmo e-mail.',
+      later: 'Sem pressa: seu link continua ativo até expirar.',
+    },
     paid: {
       subject: 'Pagamento confirmado · seu relatório do MorrowAge',
       preheader: 'Obrigado pela compra. Seu relatório e o PDF estão prontos.',

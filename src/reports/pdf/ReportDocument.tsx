@@ -1,6 +1,6 @@
 /**
  * Informe PDF (FR-12, AT-12, AT-08, AT-27). Copia fiel del informe web — `ux/report_layout.md`:
- * 8 páginas, sin claims adicionales; `<40`/`>69` fuera de 40–69; "Sensibilidad de medición" con la
+ * 13 páginas (ver DECISIONS.md 2026-10-16), sin claims adicionales; `<40`/`>69` fuera de 40–69; "Sensibilidad de medición" con la
  * nota "No es un intervalo de confianza"; todos los gráficos con tabla/texto equivalente.
  * Fuente estándar Helvetica (sin descargas de fuentes en runtime); texto saneado a WinAnsi.
  */
@@ -12,6 +12,7 @@ import { getMessages, type Messages } from '@/messages';
 import type { ReportData } from '@/lib/report/types';
 import type { ModelParams } from '@/lib/model/params';
 import { formatDate, formatInputValue, formatNumber, formatSigned, interp } from '@/lib/report/format';
+import { buildProfileRows, FULL_REPORT_PAGES, GUIDE_FIELDS, topDriverFields, type ProfileRow } from '@/lib/report/extras';
 import { pdfText } from './sanitize';
 import type { SafeAge } from '@/lib/model/display';
 import type { SourceRow } from '@/lib/drive/snapshot';
@@ -69,9 +70,10 @@ function Bullets({ items }: { items: readonly string[] }) {
   );
 }
 
-/** El informe PDF tiene exactamente 8 páginas (ux/report_layout.md); la numeración es estática. */
-const TOTAL_PAGES = 8;
-
+/**
+ * La numeración es estática (cada sección ocupa exactamente una página; el test de PDF fija el total).
+ * No se usa `render` de react-pdf: dentro del pie fijo hace que el pie completo desaparezca del PDF.
+ */
 function PageShell({ title, page, msg, children, locale, verificationId, modelVersion, dateLabel }: {
   title: string;
   page: number;
@@ -90,7 +92,7 @@ function PageShell({ title, page, msg, children, locale, verificationId, modelVe
       </View>
       <View style={s.footer} fixed>
         <T>{msg.footer.notMedical}</T>
-        <T>{interp(msg.report.pageOf, { n: page, total: TOTAL_PAGES })}</T>
+        <T>{interp(msg.report.pageOf, { n: page, total: FULL_REPORT_PAGES })}</T>
       </View>
       <T style={s.h1}>{title}</T>
       {children}
@@ -116,7 +118,7 @@ function Ticks({ range, y }: { range: readonly [number, number]; y: number }) {
   );
 }
 
-function PdfAgeScale({ data, msg }: { data: ReportData; msg: Messages }) {
+export function PdfAgeScale({ data, msg }: { data: Pick<ReportData, 'referenceRange' | 'chronologicalAge' | 'result'>; msg: Messages }) {
   const range = data.referenceRange;
   const Y = 46;
   const within = data.result.value !== undefined;
@@ -203,6 +205,69 @@ function PdfDriversChart({ data, locale, msg }: { data: ReportData; locale: Loca
         );
       })}
     </Svg>
+  );
+}
+
+function ProfileLine({ row, locale, msg }: { row: ProfileRow; locale: Locale; msg: Messages }) {
+  const p = msg.report.profile;
+  const userText = formatInputValue(locale, row.field, row.userValue, msg);
+  const benchText =
+    row.benchmarkValue === null ? msg.variables.benchmarkWeighted : row.field === 'cigarettes_per_day' ? msg.variables.benchmarkNever : formatInputValue(locale, row.field, row.benchmarkValue, msg);
+  const posText = row.position === 'category' ? p.category : row.position === 'above' ? p.above : row.position === 'below' ? p.below : p.near;
+  const W = 150;
+  const px = (f: number) => 4 + f * (W - 8);
+  return (
+    <View style={[s.tr, { alignItems: 'center', paddingVertical: 8 }]} wrap={false}>
+      <T style={[s.td, { width: '25%', fontFamily: 'Helvetica-Bold' }]}>{msg.variables[row.field].label}</T>
+      <View style={{ width: '33%' }}>
+        {row.userFrac !== undefined && row.benchFrac !== undefined ? (
+          <Svg width={W} height={22} viewBox={`0 0 ${W} 22`}>
+            <Rect x={0} y={8} width={W} height={6} rx={3} fill={C.surface} stroke={C.border} strokeWidth={0.6} />
+            <Line x1={px(row.benchFrac)} x2={px(row.benchFrac)} y1={3} y2={19} stroke={C.slate} strokeWidth={1.6} />
+            <Circle cx={px(row.userFrac)} cy={11} r={5.5} fill={C.primary} />
+          </Svg>
+        ) : (
+          <T style={s.muted}>{p.srhNote}</T>
+        )}
+      </View>
+      <View style={{ width: '42%' }}>
+        <T style={s.td}>{`${p.yourValue}: ${userText}`}</T>
+        <T style={s.muted}>{`${p.benchmark}: ${benchText}`}</T>
+        <T style={[s.muted, { color: C.primary, fontFamily: 'Helvetica-Bold' }]}>{posText}</T>
+      </View>
+    </View>
+  );
+}
+
+function LabeledLine({ label, text }: { label: string; text: string }) {
+  return (
+    <Text style={{ fontSize: 8.6, marginBottom: 1, lineHeight: 1.35 }}>
+      <Text style={{ fontFamily: 'Helvetica-Bold', color: C.primaryDark }}>{pdfText(`${label}: `)}</Text>
+      {pdfText(text)}
+    </Text>
+  );
+}
+
+const LOG_WIDTHS = [14, 7, 8, 9, 8, 11, 10, 10, 8, 15];
+
+function LogTable({ msg }: { msg: Messages }) {
+  const c = msg.report.followup.logColumns;
+  const heads = [c.date, c.age, c.sleep, c.health, c.cigs, c.reaction, c.wthr, c.alcohol, c.rhr, c.result];
+  return (
+    <View style={{ borderWidth: 0.8, borderColor: C.muted, marginTop: 6 }}>
+      <View style={{ flexDirection: 'row', backgroundColor: C.surface }}>
+        {heads.map((h, i) => (
+          <T key={h} style={[s.th, { width: `${LOG_WIDTHS[i]}%`, padding: 4, borderRightWidth: i === heads.length - 1 ? 0 : 0.5, borderRightColor: C.border }]}>{h}</T>
+        ))}
+      </View>
+      {Array.from({ length: 8 }, (_, row) => (
+        <View key={row} style={{ flexDirection: 'row', height: 24, borderTopWidth: 0.5, borderTopColor: C.border }}>
+          {LOG_WIDTHS.map((w, i) => (
+            <View key={i} style={{ width: `${w}%`, borderRightWidth: i === LOG_WIDTHS.length - 1 ? 0 : 0.5, borderRightColor: C.border }} />
+          ))}
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -293,8 +358,19 @@ export function ReportDocument({ data, locale, params, sources, tokenExpiresAt, 
         <T style={s.muted}>{msg.report.disclaimer}</T>
       </PageShell>
 
-      {/* 3 · Sensibilidad */}
-      <PageShell {...shell} page={3} title={msg.report.sensitivity}>
+      {/* 3 · Perfil frente al benchmark */}
+      <PageShell {...shell} page={3} title={r.pdfProfilePage}>
+        <T style={s.p}>{r.profile.intro}</T>
+        {buildProfileRows(data).map((row) => (
+          <ProfileLine key={row.field} row={row} locale={locale} msg={msg} />
+        ))}
+        <View style={s.callout}>
+          <T style={s.p}>{r.profile.note}</T>
+        </View>
+      </PageShell>
+
+      {/* 4 · Sensibilidad */}
+      <PageShell {...shell} page={4} title={msg.report.sensitivity}>
         <View style={s.callout}>
           <T style={[s.p, { fontFamily: 'Helvetica-Bold' }]}>{msg.report.sensitivity_note}</T>
         </View>
@@ -319,7 +395,7 @@ export function ReportDocument({ data, locale, params, sources, tokenExpiresAt, 
       </PageShell>
 
       {/* 4 · Drivers */}
-      <PageShell {...shell} page={4} title={msg.report.drivers}>
+      <PageShell {...shell} page={5} title={msg.report.drivers}>
         <T style={s.muted}>{r.driversSection.note}</T>
         <View style={{ marginVertical: 10 }}>
           <PdfDriversChart data={data} locale={locale} msg={msg} />
@@ -342,7 +418,7 @@ export function ReportDocument({ data, locale, params, sources, tokenExpiresAt, 
       </PageShell>
 
       {/* 5 · Escenarios */}
-      <PageShell {...shell} page={5} title={r.scenarios.title}>
+      <PageShell {...shell} page={6} title={r.scenarios.title}>
         <T style={s.p}>{r.scenarios.pdfIntro}</T>
         {data.scenarios.length === 0 ? <T style={s.muted}>{r.scenarios.none}</T> : null}
         {data.scenarios.map((sc) => (
@@ -375,16 +451,87 @@ export function ReportDocument({ data, locale, params, sources, tokenExpiresAt, 
         </View>
       </PageShell>
 
-      {/* 6 · Próximos pasos */}
-      <PageShell {...shell} page={6} title={r.plan.title}>
+      {/* 7 · Guía de medición */}
+      <PageShell {...shell} page={7} title={r.pdfGuidePage}>
+        <T style={s.p}>{r.guide.intro}</T>
+        {GUIDE_FIELDS.map((field) => {
+          const g = r.guide.items[field];
+          return (
+            <View key={field} style={[s.card, { padding: 6, marginBottom: 4 }]} wrap={false}>
+              <T style={[s.h3, { marginBottom: 1, fontSize: 10 }]}>{msg.variables[field].label}</T>
+              <LabeledLine label={r.guide.what} text={g.what} />
+              <LabeledLine label={r.guide.how} text={g.how} />
+              <LabeledLine label={r.guide.avoid} text={g.avoid} />
+            </View>
+          );
+        })}
+      </PageShell>
+
+      {/* 8 · Próximos pasos */}
+      <PageShell {...shell} page={8} title={r.plan.title}>
         <Bullets items={r.plan.items} />
         <View style={s.callout}>
           <T style={s.p}>{r.plan.note}</T>
         </View>
       </PageShell>
 
-      {/* 7 · Supuestos y metodología */}
-      <PageShell {...shell} page={7} title={msg.methodology.title}>
+      {/* 9 · Seguimiento y registro */}
+      <PageShell {...shell} page={9} title={r.pdfFollowupPage}>
+        <T style={s.p}>{r.followup.intro}</T>
+        <T style={s.h3}>{r.followup.stepsTitle}</T>
+        <Bullets items={r.followup.steps} />
+        <T style={[s.h2, { marginTop: 10 }]}>{r.followup.logTitle}</T>
+        <T style={s.muted}>{r.followup.logIntro}</T>
+        <LogTable msg={msg} />
+        <T style={[s.muted, { marginTop: 6 }]}>{r.followup.logNote}</T>
+      </PageShell>
+
+      {/* 10 · Preguntas para un profesional */}
+      <PageShell {...shell} page={10} title={r.pdfQuestionsPage}>
+        <T style={s.p}>{r.questions.intro}</T>
+        <View style={s.card}>
+          {r.questions.items.map((q, i) => (
+            <View key={q} style={s.bullet} wrap={false}>
+              <T style={[s.bulletDot, { width: 16 }]}>{`${i + 1}.`}</T>
+              <T style={s.bulletText}>{q}</T>
+            </View>
+          ))}
+        </View>
+        <T style={s.h2}>{r.questions.topTitle}</T>
+        <T style={s.muted}>{r.questions.topIntro}</T>
+        <View style={[s.card, { marginTop: 6 }]}>
+          {topDriverFields(data).map((f) => (
+            <View key={f} style={s.bullet} wrap={false}>
+              <T style={s.bulletDot}>-</T>
+              <T style={s.bulletText}>{interp(r.questions.topItem, { variable: msg.variables[f].label })}</T>
+            </View>
+          ))}
+        </View>
+        <View style={s.callout}>
+          <T style={s.p}>{r.questions.note}</T>
+        </View>
+      </PageShell>
+
+      {/* 11 · Glosario y preguntas frecuentes */}
+      <PageShell {...shell} page={11} title={r.pdfGlossaryPage}>
+        <T style={s.h2}>{r.glossary.termsTitle}</T>
+        {r.glossary.terms.map((t) => (
+          <View key={t.term} style={{ marginBottom: 5 }} wrap={false}>
+            <T style={[s.td, { fontFamily: 'Helvetica-Bold' }]}>{t.term}</T>
+            <T style={s.muted}>{t.def}</T>
+          </View>
+        ))}
+        <T style={s.h2}>{r.glossary.faqTitle}</T>
+        {r.glossary.faq.map((f) => (
+          <View key={f.q} style={{ marginBottom: 5 }} wrap={false}>
+            <T style={[s.td, { fontFamily: 'Helvetica-Bold' }]}>{f.q}</T>
+            <T style={s.muted}>{f.a}</T>
+          </View>
+        ))}
+      </PageShell>
+
+      {/* 12 · Supuestos y metodología */}
+      <PageShell {...shell} page={12} title={msg.methodology.title}>
         <T style={s.p}>{msg.methodology.sections[1]?.body[0] ?? ''}</T>
         <T style={s.h3}>{msg.methodology.formulaTitle}</T>
         <View style={s.callout}><T style={{ fontFamily: 'Courier', fontSize: 9.5 }}>{msg.methodology.formula}</T></View>
@@ -403,8 +550,8 @@ export function ReportDocument({ data, locale, params, sources, tokenExpiresAt, 
         <T style={s.muted}>{`${msg.methodology.lockedTitle}: ${msg.methodology.lockedItems.join(' · ')}. ${msg.methodology.lockedRisk}`}</T>
       </PageShell>
 
-      {/* 8 · Fuentes, privacidad, descargo */}
-      <PageShell {...shell} page={8} title={r.pdfSourcesPage}>
+      {/* 13 · Fuentes, privacidad, descargo */}
+      <PageShell {...shell} page={13} title={r.pdfSourcesPage}>
         <T style={s.h2}>{r.sources.title}</T>
         {SOURCE_IDS.map((id) => {
           const row = sources.find((x) => x.id === id);

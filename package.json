@@ -23,6 +23,7 @@
     "check:placeholders": "tsx scripts/check-placeholders.ts",
     "check:drive": "tsx scripts/check-drive-manifest.ts",
     "drive:sync": "tsx scripts/drive-sync.ts",
+    "db:bundle": "tsx scripts/build-sql-bundle.ts",
     "perf:api": "tsx scripts/perf-api.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build"
   },

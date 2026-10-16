@@ -11,13 +11,21 @@ import { Link, useRouter } from '@/i18n/navigation';
 import { postJson } from '@/lib/api-client';
 import { track } from '@/lib/analytics/client';
 import { useAssessment } from '@/lib/assessment/state';
+import { maskEmail } from '@/lib/email-address';
 import type { Locale } from '@/lib/locales';
+import { FULL_REPORT_PAGES } from '@/lib/report/constants';
 import { useTurnstile } from '@/lib/turnstile-client';
 import { emailSchema } from '@/lib/validation';
 
-/** Email gate de la fase `validation` (FR-08): servicio ≠ marketing; sin dark patterns; sin cobro. */
-export function GateScreen() {
+/**
+ * Email gate (FR-08): servicio ≠ marketing; sin dark patterns; sin cobro.
+ *  - validation: recibe el informe completo gratis;
+ *  - paypal: recibe la VISTA PREVIA difuminada y un botón para desbloquear (no paga nada aquí).
+ */
+export function GateScreen({ phase = 'validation' }: { phase?: 'validation' | 'paypal' }) {
+  const paid = phase === 'paypal';
   const t = useTranslations('email_gate');
+  const tg = useTranslations('email_gate.paid');
   const te = useTranslations('errors');
   const tp = useTranslations('preview');
   const ta = useTranslations('a11y');
@@ -36,7 +44,7 @@ export function GateScreen() {
   const calc = state.calculation;
 
   useEffect(() => {
-    if (state.hydrated && calc) track('report_gate_view', { phase: 'validation' });
+    if (state.hydrated && calc) track('report_gate_view', { phase });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.hydrated, !!calc]);
 
@@ -67,7 +75,7 @@ export function GateScreen() {
     }
     setBusy(true);
     const token = await getToken();
-    const res = await postJson<{ leadId: string; reportUrl: string }>(
+    const res = await postJson<{ leadId: string; mode?: 'report' | 'paywall'; reportUrl?: string; unlockUrl?: string }>(
       '/api/leads',
       { calculationId: calc.id, email: parsed.data, locale, serviceConsent: true, marketingOptIn: marketing, subscriptionWaitlistOptIn: waitlist },
       { locale, turnstileToken: token },
@@ -87,7 +95,7 @@ export function GateScreen() {
       );
       return;
     }
-    setDelivery({ leadId: res.data.leadId, reportUrl: res.data.reportUrl });
+    setDelivery({ leadId: res.data.leadId, reportUrl: res.data.reportUrl, unlockUrl: res.data.unlockUrl, emailMasked: maskEmail(parsed.data) });
     router.push('/success');
   };
 
@@ -100,15 +108,15 @@ export function GateScreen() {
               <Mail className="size-6" aria-hidden="true" />
             </span>
             <h1 id="gate-title" className="text-3xl font-extrabold">
-              {t('title')}
+              {paid ? tg('title') : t('title')}
             </h1>
-            <p className="text-lg text-muted">{t('body')}</p>
+            <p className="text-lg text-muted">{paid ? tg('body') : t('body')}</p>
           </div>
 
           <div className="rounded-md bg-surface-alt/70 p-4">
-            <p className="text-sm font-bold">{t('benefitsTitle')}</p>
+            <p className="text-sm font-bold">{paid ? tg('benefitsTitle') : t('benefitsTitle')}</p>
             <ul className="mt-2 space-y-1.5 text-sm">
-              {(t.raw('benefits') as string[]).map((b) => (
+              {(paid ? (tg.raw('benefits') as string[]).map((b) => b.replace('{pages}', String(FULL_REPORT_PAGES))) : (t.raw('benefits') as string[])).map((b) => (
                 <li key={b} className="flex gap-2">
                   <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />
                   {b}
@@ -126,7 +134,7 @@ export function GateScreen() {
           <div className="space-y-4">
             <div>
               <CheckboxField id="f-service" checked={service} onCheckedChange={(v) => { setService(v); setConsentError(null); }} describedBy={consentError ? 'service-error' : undefined} invalid={Boolean(consentError)}>
-                {t('consentService')}{' '}
+                {paid ? tg('consentService') : t('consentService')}{' '}
                 <Link href="/privacy" className="font-semibold text-primary underline underline-offset-4">
                   {t('privacyLink')}
                 </Link>
@@ -146,7 +154,7 @@ export function GateScreen() {
           </div>
 
           <div className="space-y-2 text-xs text-muted">
-            <p>{t('ownerCopy')}</p>
+            <p>{paid ? tg('ownerCopy') : t('ownerCopy')}</p>
             <p>{t('neverShared')}</p>
           </div>
 
@@ -162,7 +170,7 @@ export function GateScreen() {
               {t('back')}
             </Button>
             <Button type="submit" size="lg" className="flex-1 sm:flex-none" loading={busy} loadingText={t('submitting')}>
-              {t('cta')}
+              {paid ? tg('cta') : t('cta')}
             </Button>
           </div>
         </Card>

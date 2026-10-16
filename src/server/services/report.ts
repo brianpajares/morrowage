@@ -26,8 +26,21 @@ export function reportUrl(locale: Locale, token: string): string {
   return `${getEnv().appUrl}/${locale}/report/${token}`;
 }
 
-export function tokenExpiry(now: Date): Date {
-  return new Date(now.getTime() + getEnv().reportTokenTtlHours * 3_600_000);
+/** Enlace de pago (vista previa difuminada). Mismo token que el informe: tras pagar se rota. */
+export function unlockUrl(locale: Locale, token: string): string {
+  return `${getEnv().appUrl}/${locale}/unlock/${token}`;
+}
+
+/**
+ * Caducidad del enlace según el nivel de acceso. El informe gratuito (validation) usa
+ * REPORT_TOKEN_TTL_HOURS; los enlaces de pago (vista previa → desbloqueo → informe pagado) duran lo
+ * mismo que la retención del cálculo (REPORT_RETENTION_DAYS): pasada la retención no hay datos que
+ * mostrar, y un comprador necesita tiempo para decidir.
+ */
+export function tokenExpiry(now: Date, tier: AccessTier = 'validation_full'): Date {
+  const env = getEnv();
+  const hours = tier === 'validation_full' ? env.reportTokenTtlHours : env.reportRetentionDays * 24;
+  return new Date(now.getTime() + hours * 3_600_000);
 }
 
 export async function issueReport(
@@ -37,7 +50,7 @@ export async function issueReport(
   tier: AccessTier,
   now: Date = new Date(),
 ): Promise<IssuedReport> {
-  const expires = tokenExpiry(now);
+  const expires = tokenExpiry(now, tier);
   for (let attempt = 0; attempt < 5; attempt++) {
     const token = generateReportToken();
     try {
@@ -60,13 +73,19 @@ export async function issueReport(
 }
 
 /** Rota el token (reenvío admin / reintento): invalida el enlace anterior y extiende la expiración. */
-export async function rotateReportToken(store: Store, report: ReportRow, now: Date = new Date()): Promise<IssuedReport> {
+export async function rotateReportToken(
+  store: Store,
+  report: ReportRow,
+  now: Date = new Date(),
+  tier: AccessTier = report.access_tier,
+): Promise<IssuedReport> {
   for (let attempt = 0; attempt < 3; attempt++) {
     const token = generateReportToken();
     try {
       const updated = await store.updateReport(report.id, {
         token_hash: hashToken(token),
-        token_expires_at: tokenExpiry(now).toISOString(),
+        token_expires_at: tokenExpiry(now, tier).toISOString(),
+        ...(tier !== report.access_tier ? { access_tier: tier } : {}),
       });
       return { report: updated, token };
     } catch (err) {
@@ -95,14 +114,21 @@ export async function buildDataForReport(calc: CalculationRow, report: ReportRow
 
 export type ReportLookup =
   | { status: 'ok'; report: ReportRow; calc: CalculationRow; data: ReportData; expiresAt: string }
+  /** El informe existe pero está bloqueado: falta el pago. Nunca se devuelven datos del informe. */
+  | { status: 'locked' }
   | { status: 'expired' }
   | { status: 'not_found' };
 
+/**
+ * Consulta el informe COMPLETO por token. Un informe `preview_locked` responde `locked` sin ninguna
+ * información (la API devuelve solo el enlace de desbloqueo, nunca el informe antes del pago).
+ */
 export async function lookupReport(store: Store, token: string, now: Date = new Date()): Promise<ReportLookup> {
   if (!isPlausibleToken(token)) return { status: 'not_found' };
   const report = await store.getReportByTokenHash(hashToken(token));
   if (!report) return { status: 'not_found' };
   if (new Date(report.token_expires_at) <= now) return { status: 'expired' };
+  if (report.access_tier === 'preview_locked') return { status: 'locked' };
   const calc = await store.getCalculation(report.calculation_id);
   if (!calc) return { status: 'not_found' };
   const data = await buildDataForReport(calc, report);

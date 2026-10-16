@@ -5,7 +5,7 @@ import type { Inputs, SelfRatedHealth } from '@/lib/model/input-spec';
 import type { ModelParams, SensitivityField } from '@/lib/model/params';
 import type { ScenarioBounds, ScenarioResult } from '@/lib/model/scenarios';
 
-export type AccessTier = 'validation_full' | 'paid_full';
+export type AccessTier = 'validation_full' | 'paid_full' | 'preview_locked';
 
 export interface ReportDriverRow {
   field: DriverField;

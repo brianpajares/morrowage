@@ -175,3 +175,114 @@ describe('AT-33 · RLS (migraciones reales)', () => {
     });
   });
 });
+
+describe('Pagos PayPal · transiciones atómicas (migración 20261016)', () => {
+  const calc = randomUUID();
+  const orderA = randomUUID();
+  const orderB = randomUUID();
+  const mark = (order: string, ppOrder: string, capture: string, amount = 1900, currency = 'USD') =>
+    `select public.ma_order_mark_paid('${order}', '${ppOrder}', '${capture}', ${amount}, '${currency}', true) as r`;
+
+  beforeAll(async () => {
+    await db.exec(`
+      insert into public.calculations (id, session_hash, locale, input_payload, output_payload, app_version, scope_accepted_at, expires_at)
+        values ('${calc}', 'h3', 'es', '{"age_years":50}', '{"morrow_age":48}', '4.0.0', now(), now() + interval '30 days');
+      insert into public.orders (id, calculation_id, amount_minor, currency, provider, paypal_order_id, status)
+        values ('${orderA}', '${calc}', 1900, 'USD', 'paypal', 'PPA', 'pending'),
+               ('${orderB}', '${calc}', 1900, 'USD', 'paypal', 'PPB', 'pending');
+    `);
+  });
+
+  it('reports admite el nivel preview_locked y rechaza niveles desconocidos', async () => {
+    const lead = randomUUID();
+    await db.exec(`insert into public.leads (id, calculation_id, email, locale, service_consent_at) values ('${lead}', '${calc}', 'pay@morrowage.test', 'es', now());`);
+    await db.exec(`insert into public.reports (lead_id, calculation_id, verification_id, access_tier, token_hash, token_expires_at)
+      values ('${lead}', '${calc}', 'MA-26-LOCKED', 'preview_locked', 'sha-locked', now() + interval '30 days');`);
+    await expect(
+      db.query(`insert into public.reports (calculation_id, verification_id, access_tier, token_hash, token_expires_at)
+        values ('${calc}', 'MA-26-BADTIER', 'gratis', 'sha-bad', now() + interval '30 days')`),
+    ).rejects.toThrow(/check constraint/i);
+  });
+
+  it('mark_paid: importe/moneda/orden incorrectos → mismatch; correcto → paid; repetido → already_paid', async () => {
+    await as('service_role', null, async () => {
+      expect((await rows(mark(orderA, 'PPA', 'CAP1', 999)))[0]).toEqual({ r: 'mismatch' });
+      expect((await rows(mark(orderA, 'PPA', 'CAP1', 1900, 'EUR')))[0]).toEqual({ r: 'mismatch' });
+      expect((await rows(mark(orderA, 'OTRO', 'CAP1')))[0]).toEqual({ r: 'mismatch' });
+      expect((await rows(`select status from public.orders where id = '${orderA}'`))[0]).toEqual({ status: 'pending' });
+
+      expect((await rows(mark(orderA, 'PPA', 'CAP1')))[0]).toEqual({ r: 'paid' });
+      expect((await rows(mark(orderA, 'PPA', 'CAP1')))[0]).toEqual({ r: 'already_paid' });
+      expect((await rows(mark(orderA, 'PPA', 'CAP-DISTINTA')))[0]).toEqual({ r: 'mismatch' });
+      const [o] = await rows(`select status, paypal_capture_id, sandbox, paid_at is not null as has_paid_at from public.orders where id = '${orderA}'`);
+      expect(o).toEqual({ status: 'paid', paypal_capture_id: 'CAP1', sandbox: true, has_paid_at: true });
+    });
+  });
+
+  it('una misma captura no puede pagar dos pedidos (UNIQUE parcial)', async () => {
+    await as('service_role', null, async () => {
+      expect((await rows(mark(orderB, 'PPB', 'CAP1')))[0]).toEqual({ r: 'mismatch' });
+      expect((await rows(`select status from public.orders where id = '${orderB}'`))[0]).toEqual({ status: 'pending' });
+    });
+  });
+
+  it('claim_fulfillment da la entrega en exclusiva a un solo proceso y permite reintentar tras «failed» o «claimed» vencido', async () => {
+    await as('service_role', null, async () => {
+      const claim = async () => ((await rows(`select public.ma_order_claim_fulfillment('${orderA}', 10) as r`))[0] as { r: boolean }).r;
+      expect(await claim()).toBe(true);
+      expect(await claim()).toBe(false); // otro proceso mientras tanto
+      await db.exec(`update public.orders set fulfillment_status = 'failed' where id = '${orderA}'`);
+      expect(await claim()).toBe(true); // reintento tras fallo
+      await db.exec(`update public.orders set fulfillment_claimed_at = now() - interval '11 minutes' where id = '${orderA}'`);
+      expect(await claim()).toBe(true); // reclamo vencido (proceso caído)
+      await db.exec(`update public.orders set fulfillment_status = 'delivered' where id = '${orderA}'`);
+      expect(await claim()).toBe(false); // entregado: nunca otra vez
+      // un pedido sin pagar no se puede reclamar
+      expect(((await rows(`select public.ma_order_claim_fulfillment('${orderB}', 10) as r`))[0] as { r: boolean }).r).toBe(false);
+    });
+  });
+
+  it('las funciones de pago solo las ejecuta service_role (anon/authenticated → permission denied)', async () => {
+    for (const role of ['anon', 'authenticated'] as const) {
+      await as(role, ADMIN_ID, async () => {
+        expect(await denied(mark(orderB, 'PPB', 'CAP2')), role).toBe(true);
+        expect(await denied(`select public.ma_order_claim_fulfillment('${orderB}', 10)`), role).toBe(true);
+      });
+    }
+  });
+});
+
+describe('supabase/bundle.sql (migraciones en un solo archivo para el SQL Editor)', () => {
+  const BUNDLE = path.resolve(import.meta.dirname, '../bundle.sql');
+
+  it('está al día: contiene cada migración completa (regenerar con `npm run db:bundle`)', () => {
+    const bundle = fs.readFileSync(BUNDLE, 'utf8');
+    for (const f of fs.readdirSync(MIGRATIONS).sort()) {
+      expect(bundle, f).toContain(fs.readFileSync(path.join(MIGRATIONS, f), 'utf8').trimEnd());
+    }
+  });
+
+  it('se ejecuta de una vez en un proyecto nuevo y la comprobación final da 9 tablas, 0 sin RLS y 4 funciones', async () => {
+    const fresh = new PGlite({ extensions: { pgcrypto, citext } });
+    try {
+      await fresh.exec(`
+        create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
+        grant usage on schema public to anon, authenticated, service_role;
+        alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+        alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+        create schema auth;
+        create table auth.users (id uuid primary key default gen_random_uuid(), email text);
+        create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+        grant usage on schema auth to anon, authenticated, service_role;
+        grant execute on function auth.uid() to anon, authenticated, service_role;
+      `);
+      const results = await fresh.exec(fs.readFileSync(BUNDLE, 'utf8'));
+      const last = results.at(-1)!.rows[0] as { tablas: number | string; tablas_sin_rls: number | string; funciones: number | string };
+      expect(Number(last.tablas)).toBe(9);
+      expect(Number(last.tablas_sin_rls)).toBe(0);
+      expect(Number(last.funciones)).toBe(4);
+    } finally {
+      await fresh.close();
+    }
+  });
+});

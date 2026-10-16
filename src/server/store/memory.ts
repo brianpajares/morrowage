@@ -14,8 +14,10 @@ import {
   type LeadCounts,
   type LeadInsert,
   type LeadRow,
+  type MarkPaidResult,
   type OrderInsert,
   type OrderRow,
+  type SalesSummary,
   type PurgeResult,
   type ReportInsert,
   type ReportRow,
@@ -239,15 +241,29 @@ export class MemoryStore implements Store {
       }
     }
     const ts = nowIso();
+    if (row.paypal_order_id) {
+      for (const o of this.orders.values()) {
+        if (o.paypal_order_id === row.paypal_order_id) throw new UniqueViolationError('orders_paypal_order_id_key');
+      }
+    }
     const rec: OrderRow = {
       id: randomUUID(),
       lead_id: row.lead_id ?? null,
       calculation_id: row.calculation_id,
+      provider: row.provider ?? 'stripe',
       stripe_checkout_session_id: row.stripe_checkout_session_id ?? null,
       stripe_payment_intent_id: null,
+      paypal_order_id: row.paypal_order_id ?? null,
+      paypal_capture_id: null,
+      sandbox: row.sandbox ?? false,
       amount_minor: row.amount_minor,
       currency: row.currency,
       status: row.status ?? 'pending',
+      fulfillment_status: 'not_started',
+      fulfillment_claimed_at: null,
+      fulfillment_attempts: 0,
+      last_error_class: null,
+      terms_accepted_at: row.terms_accepted_at ?? null,
       created_at: ts,
       paid_at: null,
       updated_at: ts,
@@ -264,9 +280,86 @@ export class MemoryStore implements Store {
   async updateOrder(id: string, patch: Parameters<Store['updateOrder']>[1]) {
     const cur = this.orders.get(id);
     if (!cur) throw new Error('not_found:order');
+    if (patch.paypal_order_id) {
+      for (const o of this.orders.values()) {
+        if (o.id !== id && o.paypal_order_id === patch.paypal_order_id) throw new UniqueViolationError('orders_paypal_order_id_key');
+      }
+    }
     const next = { ...cur, ...patch, updated_at: nowIso() };
     this.orders.set(id, next);
     return next;
+  }
+
+  async getOrderByPaypalOrderId(paypalOrderId: string) {
+    return [...this.orders.values()].find((o) => o.paypal_order_id === paypalOrderId) ?? null;
+  }
+  async listOrdersByCalculation(calculationId: string) {
+    return [...this.orders.values()].filter((o) => o.calculation_id === calculationId);
+  }
+  async markOrderPaid(i: { orderId: string; paypalOrderId: string; captureId: string; amountMinor: number; currency: string; sandbox: boolean }): Promise<MarkPaidResult> {
+    const o = this.orders.get(i.orderId);
+    if (!o) return 'mismatch';
+    if (o.status === 'paid') return o.paypal_capture_id === i.captureId ? 'already_paid' : 'mismatch';
+    if (
+      o.status !== 'pending' ||
+      o.provider !== 'paypal' ||
+      o.amount_minor !== i.amountMinor ||
+      o.currency.toUpperCase() !== i.currency.toUpperCase() ||
+      (o.paypal_order_id !== null && o.paypal_order_id !== i.paypalOrderId)
+    ) {
+      return 'mismatch';
+    }
+    for (const other of this.orders.values()) {
+      if (other.id !== o.id && other.paypal_capture_id === i.captureId) return 'mismatch';
+    }
+    this.orders.set(o.id, {
+      ...o,
+      status: 'paid',
+      paid_at: nowIso(),
+      paypal_order_id: i.paypalOrderId,
+      paypal_capture_id: i.captureId,
+      sandbox: i.sandbox,
+      last_error_class: null,
+      updated_at: nowIso(),
+    });
+    return 'paid';
+  }
+  async claimOrderFulfillment(orderId: string, staleMinutes = 10) {
+    const o = this.orders.get(orderId);
+    if (!o || o.status !== 'paid') return false;
+    const stale =
+      o.fulfillment_status === 'claimed' &&
+      o.fulfillment_claimed_at !== null &&
+      Date.now() - new Date(o.fulfillment_claimed_at).getTime() > Math.max(staleMinutes, 1) * 60_000;
+    if (o.fulfillment_status !== 'not_started' && o.fulfillment_status !== 'failed' && !stale) return false;
+    this.orders.set(o.id, {
+      ...o,
+      fulfillment_status: 'claimed',
+      fulfillment_claimed_at: nowIso(),
+      fulfillment_attempts: o.fulfillment_attempts + 1,
+      updated_at: nowIso(),
+    });
+    return true;
+  }
+  async listOrdersForFulfillmentRetry(opts: { olderThan: Date; limit: number }) {
+    return [...this.orders.values()]
+      .filter(
+        (o) =>
+          o.provider === 'paypal' &&
+          o.status === 'paid' &&
+          o.fulfillment_status !== 'delivered' &&
+          new Date(o.updated_at) < opts.olderThan,
+      )
+      .slice(0, opts.limit);
+  }
+  async salesSummary(): Promise<SalesSummary> {
+    const paid = [...this.orders.values()].filter((o) => o.provider === 'paypal' && o.status === 'paid');
+    return {
+      paidOrders: paid.length,
+      paidAmountMinor: paid.reduce((n, o) => n + o.amount_minor, 0),
+      sandboxOrders: paid.filter((o) => o.sandbox).length,
+      pendingFulfillment: paid.filter((o) => o.fulfillment_status !== 'delivered').length,
+    };
   }
 
   async claimWebhookEvent(eventId: string, eventType: string) {

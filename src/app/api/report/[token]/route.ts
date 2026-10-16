@@ -15,6 +15,8 @@ export const GET = handler(async (req: Request, { params }: { params: Promise<{ 
   const found = await lookupReport(getStore(), token);
   if (found.status === 'not_found') throw new ApiError(404, 'report_not_found');
   if (found.status === 'expired') throw new ApiError(410, 'token_expired');
+  // Informe bloqueado (falta el pago): ni un solo dato del informe viaja al navegador.
+  if (found.status === 'locked') throw new ApiError(402, 'payment_required');
 
   const { data } = found;
   return json({

@@ -71,6 +71,15 @@ export const siteEs = {
     ],
     fullTitle: 'Informe completo',
     fullBadge: 'Gratis en esta fase',
+    fullBadgePaid: 'Pago único {price}',
+    fullItemsPaid: [
+      'Perfil dato por dato frente al benchmark y sensibilidad de medición',
+      'Todas las asociaciones ordenadas por peso',
+      'Escenarios educativos que puedes explorar',
+      'Guía de medición, registro de seguimiento y preguntas para tu profesional',
+      'Glosario, metodología y fuentes · PDF de {pages} páginas',
+    ],
+    faqPricePaid: 'Tu resultado y la vista previa son gratis. El informe completo de {pages} páginas es un pago único de {price}, sin suscripción, y lo ves antes de pagar.',
     fullItems: [
       'Sensibilidad de medición (no es un intervalo de confianza)',
       'Todas las asociaciones ordenadas por peso',

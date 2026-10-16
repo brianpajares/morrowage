@@ -58,7 +58,7 @@ export const legalPt: Shape<typeof legalEs> = {
           'Hospedagem e banco de dados: Vercel e Supabase. Envio de e-mails: Resend.',
           'Proteção contra abuso: Cloudflare Turnstile e Upstash (limite de requisições).',
           'Análise da jornada, sem dados de saúde: PostHog. Monitoramento de erros com dados redigidos: Sentry.',
-          'Arquivos de configuração do produto, sem dados pessoais: Google Drive. Pagamentos, apenas se forem ativados: Stripe.',
+          'Arquivos de configuração do produto, sem dados pessoais: Google Drive. Pagamentos (quando ativos): PayPal, que processa a cobrança com PayPal ou cartão; Stripe, apenas se for ativado.',
           'Esses provedores podem tratar dados nos Estados Unidos e em outros países; aplicamos as garantias contratuais correspondentes. Não vendemos os seus dados.',
         ],
       },
@@ -141,7 +141,9 @@ export const legalPt: Shape<typeof legalEs> = {
       {
         title: 'Preço',
         body: [
-          'Na fase de validação o relatório é gratuito. Se um preço for ativado, ele será mostrado antes de você informar dados de pagamento, junto com as condições de pagamento e reembolso aplicáveis.',
+          'Seu resultado e a prévia do relatório são gratuitos. O relatório completo é um produto digital de pagamento único, sem assinatura; o preço é mostrado antes de pagar.',
+          'O pagamento é processado pelo PayPal (com PayPal ou cartão). O MorrowAge não armazena os dados do seu cartão. O relatório completo é entregue imediatamente por e-mail, em PDF.',
+          'Ao comprar, você aceita a entrega imediata do conteúdo digital e reconhece que, depois de entregue, renuncia ao direito de arrependimento. Se você não receber o relatório ou houver uma cobrança incorreta, escreva para nós e resolveremos, inclusive com reembolso quando aplicável.',
         ],
       },
       {
